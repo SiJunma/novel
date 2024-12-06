@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novel</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+      <h1 id="chapter-title" class="mt-0"></h1>
+      <h5 id="chapter-subtitle" class="mt-0 mb-0"></h5>
+      <p id="step-text"></p>
+      <div id="choices"></div>
+      <div id="stats">
+        <h3 class="mt-0">Statistics:</h3>
+        <div id="stats-container"></div>
+      </div>
+
+      <div id="controls">
+        <h5 class="mb-0">Go To:</h5>
+        <select id="step-select" class="controls-select"><option value="" disabled selected>Select a step</option></select>
+
+        <div id="progressBox">
+          <h5 class="mb-0">Progress:</h5>
+          <button type="button" class="btn btn-primary" id="reset-button">Reset Progress</button>
+        </div>
+      </div>
+
+      <div id="logs" style="display: none; margin-top: 20px;">
+        <h3>Logs:</h3>
+        <div id="logs-container"></div>
+      </div>
+      
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

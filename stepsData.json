@@ -1,0 +1,127 @@
+{
+  "chapters": [
+    {
+      "id": "chapter1",
+      "title": "The Beginning",
+      "steps": [
+        {
+          "id": "chapter1_step1",
+          "name": "First step of chapter 1",
+          "text": "You awaken with a sharp intake of breath.\n\n The ground beneath you is rough and cold, the air heavy with silence.\n Around you stretches a barren expanse under a shifting sky, caught between dawn and dusk.\n\n Ahead, something flickers — a movement in the distance.\n To your left, a strange structure looms on the horizon, distorted and unnatural.\n Behind you, the ground rises sharply into jagged cliffs, their shadows stretching toward you.\n\n What will you do?",
+          "choices": [
+            { 
+              "text": "Follow the flicker of movement. (Emotion)",
+              "nextStepId": "chapter1_step2",
+              "value": "emotion",
+              "stats": { "emotion": 1 }
+            },
+            {
+              "text": "Investigate the strange structure. (Intellectual)",
+              "nextStepId": "chapter1_step3",
+              "value": "intellectual",
+              "stats": { "intellectual": 1 }
+            },
+            {
+              "text": "Search for a safe place nearby. (Instinctual)",
+              "nextStepId": "chapter1_step4",
+              "value": "instinctual",
+              "stats": { "instinctual": 1 }
+            },
+            {
+              "text": "Pause and observe the surroundings. (Intuitive)",
+              "nextStepId": "chapter1_step5",
+              "value": "intuitive",
+              "stats": { "intuitive": 1 }
+            }
+          ]
+        },
+        {
+          "id": "chapter1_step2",
+          "name": "Emotional path of chapter 1",
+          "text": "You feel an inexplicable pull toward the flicker in the distance.\n It stirs something deep within you, a mix of longing and curiosity.\n You take a step forward, then another, letting your emotions guide you.\n The movement seems to grow closer, though it remains just out of reach.",
+          "choices": [
+            {
+              "text": "Continue",
+              "nextStepId": "chapter1_step1",
+              "value": "",
+              "stats": { }
+            }
+          ]
+        },
+        {
+          "id": "chapter1_step3",
+          "name": "Intellectual path of chapter 1",
+          "text": "You turn your attention to the strange structure on the horizon.\n Its lines are sharp and unnatural, as though it doesn’t belong in this world.\n You approach cautiously, examining the details—it seems to hum faintly, almost like it’s alive.\n You note the repeating patterns in its design. Could they mean something?",
+          "choices": [
+            {
+              "text": "Continue",
+              "nextStepId": "chapter1_step1",
+              "value": "",
+              "stats": { }
+            }
+          ]
+        },
+        {
+          "id": "chapter1_step4",
+          "name": "Instinctual path of chapter 1",
+          "text": "Your instincts take over, and you scan the ground for immediate shelter.\n The jagged cliffs behind you offer a promising cave, dark and quiet.\n You move quickly, the urge for safety overpowering any curiosity about the flicker or the structure.\n Inside the cave, you find a moment of reprieve, but the silence feels heavy.",
+          "choices": [
+            {
+              "text": "Continue",
+              "nextStepId": "chapter1_step1",
+              "value": "",
+              "stats": { }
+            }
+          ]
+        },
+        {
+          "id": "chapter1_step5",
+          "name": "Intuitive path of chapter 1",
+          "text": "You stand still, letting the world settle around you.\n The air feels alive, vibrating softly with a rhythm you can’t quite place.\n You close your eyes and listen, trusting the pull of the unseen.\n When you open your eyes, the cliffs seem to shimmer faintly, as if guiding you toward them.",
+          "choices": [
+            {
+              "text": "Continue",
+              "nextStepId": "chapter1_step1",
+              "value": "",
+              "stats": { }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "sideChapters": [
+    {
+      "id": "sidechapter1",
+      "title": "Side chapter 1",
+      "steps": [
+        {
+          "id": "sidechapter1_step1",
+          "name": "First step of side chapter 1",
+          "text": "This is the first step of side chapter 1",
+          "choices": [
+            {
+              "text": "Continue",
+              "nextStepId": "sidechapter1_step2",
+              "value": "",
+              "stats": { }
+            }
+          ]
+        },
+        {
+          "id": "sidechapter1_step2",
+          "name": "Second step of side chapter 1",
+          "text": "This is the second step of side chapter 1",
+          "choices": [
+            {
+              "text": "Continue",
+              "nextStepId": "sidechapter1_step1",
+              "value": "",
+              "stats": { }
+            } 
+          ]
+        }
+      ]
+    }
+  ]
+}
