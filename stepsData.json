@@ -81,7 +81,7 @@
           "choices": [
             {
               "text": "Continue",
-              "nextStepId": "chapter1_step1",
+              "nextStepId": "() => { if(app.stats.intellectual > 1) { return 'chapter2_step1'; } else if (app.logs.find(obj => obj.stepId === 'chapter1_step1' && obj.value === 'intellectual')) { return 'chapter1_step1'; } else { return 'chapter1_step4'; }; }",
               "value": "",
               "stats": { }
             }

@@ -101,7 +101,21 @@ const app = {
       name: this.currentStep.name
     });
 
-    const nextStep = choice.nextStepId;
+    let nextStep = choice.nextStepId;
+    let func;
+
+    try {
+      func = eval(choice.nextStepId);
+    } catch (error) {
+      console.log('Next step ID is not a function');
+    };
+    
+    if (func && typeof func === "function") {
+      nextStep = func();
+    } else {
+      nextStep = choice.nextStepId;
+    };
+
     if(nextStep) {
       this.loadStep(nextStep);
     };
