@@ -1,25 +1,85 @@
 const constructor = {
   init() {
-    fetch('stepsData.json')
-    .then(response => response.json())
-    .then(data => {
-      this.chapters = data.chapters;
-      this.sideChapters = data.sideChapters;
+    if (localStorage.getItem('constructedNovel')) {
+      const data = JSON.parse(localStorage.getItem('constructedNovel'));
+      proceedNovelJSON(data);
+    } else {
+      fetch('stepsData.json')
+      .then(response => response.json())
+      .then(data => {
+        proceedNovelJSON(data)
+      })
+      .catch(error => console.error("Error loading data:", error));
+    };
 
-      this.updateStepsSelects();
+    function proceedNovelJSON(data) {
+      constructor.chapters = data.chapters;
+      constructor.sideChapters = data.sideChapters;
 
-      console.log(this.chapters);
-      console.log(this.sideChapters);
+      constructor.updateStepsSelects();
+      constructor.updateChaptersSelects();
 
-      this.renderChaptersList(this.chapters, document.getElementById('listOfChapters'));
-      this.renderChaptersList(this.sideChapters, document.getElementById('listOfChapters'));
-    })
-    .catch(error => console.error("Error loading data:", error));
+      console.log(data);
+
+      constructor.renderChaptersList(data.chapters, document.getElementById('listOfChapters'));
+      constructor.renderChaptersList(data.sideChapters, document.getElementById('listOfChapters'));
+    }
+
+    document.getElementById('downloadJsonBtn').onclick = () => {
+      const data = {
+        chapters: this.chapters,
+        sideChapters: this.sideChapters
+      };
+
+      const jsonString = JSON.stringify(data, null, 2);
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+
+
+      const downloadLink = document.createElement('a');
+      downloadLink.download = 'stepsData.json';
+      downloadLink.href = url;
+      downloadLink.click();
+
+      URL.revokeObjectURL(url);
+    };
 
     document.getElementById('addChoiceBtn').onclick = () => {
       const choiceForm = document.getElementById('createChoiceForm');
       choiceForm.classList.remove('d-none');
       document.getElementById('addChoiceBtn').classList.add('d-none');
+    };
+
+    document.getElementById('chapterTitle').addEventListener('input', function(e) {
+      document.getElementById('createChapterBtn').disabled = e.target.value === '';
+    });
+
+    document.getElementById('createChapterBtn').onclick = () => {
+      const title = document.getElementById('chapterTitle').value;
+      const parentKey = document.getElementById('chapterType').value;
+
+      const data = {
+        id: parentKey + Date.now(),
+        title: title,
+        steps: []
+      };
+
+      const listOfChapters = document.getElementById('listOfChapters');
+      listOfChapters.innerHTML = '';
+
+      if (parentKey === 'chapters') {
+        constructor.chapters.push(data);
+      } else {
+        constructor.sideChapters.push(data);
+      };
+
+      document.getElementById('chapterTitle').value = '';
+      document.getElementById('chapterType').value = 'chapters';
+
+      proceedNovelJSON({ chapters: constructor.chapters, sideChapters: constructor.sideChapters });
+
+      this.saveNovelToLocalStorage();
+      window.scrollTo(0, 0);
     };
 
     document.getElementById('cancelChoiceBtn').onclick = () => {
@@ -42,15 +102,34 @@ const constructor = {
       statsContainer.appendChild(this.createStatForm(index, '', ''));
     };
 
-    document.getElementById('addNextStepConditionBtn_simple').onclick = () => {
-      const nextStepConditionsList = document.getElementById('nextStepConditionsList');
-      nextStepConditionsList.appendChild(this.createNextStepConditionForm());
-    };
-
     document.getElementById('statsContainer').addEventListener('click', (e) => {
       if (e.target.classList.contains('js-remove-stat')) {
         e.target.closest('.stats-item').remove();
-      }
+      };
+    });
+
+    document.getElementById('additionalConditionRules').addEventListener('click', (e) => {
+      if (e.target.classList.contains('js-remove-conditionRule')) {
+        e.target.closest('.js-condition-rule').remove();
+      };
+    });
+
+    document.getElementById('listOfChapters').addEventListener('click', (e) => {
+
+      if (e.target.classList.contains('js-remove-chapter')) {
+        const chapterId = e.target.closest('.chapter-box').querySelector('.chapter-title').getAttribute('data-id');
+
+        const confirmRemoval = confirm(`Are you sure you want to remove chapter: ${e.target.closest('.chapter-box').querySelector('.chapter-title span').textContent}?`);
+        if (confirmRemoval) {
+          constructor.chapters = constructor.chapters.filter(chapter => chapter.id !== chapterId);
+          constructor.sideChapters = constructor.sideChapters.filter(chapter => chapter.id !== chapterId);
+
+          constructor.saveNovelToLocalStorage();
+          document.getElementById('listOfChapters').innerHTML = '';
+
+          proceedNovelJSON({ chapters: constructor.chapters, sideChapters: constructor.sideChapters });
+        };
+      };
     });
 
     document.getElementById('nextStepConditionsList').addEventListener('click', (e) => {
@@ -67,23 +146,101 @@ const constructor = {
         document.querySelector(`.suboption[for="${input.id}"]`).classList.remove('d-none');
       });
     });
+
+    document.getElementById('statChoiceOperator').addEventListener('change', (e) => {
+      if (e.target.value === 'stat') {
+        document.getElementById('checkforStat').classList.remove('d-none');
+        document.getElementById('checkforChoice').classList.add('d-none');
+      } else {
+        document.getElementById('checkforStat').classList.add('d-none');
+        document.getElementById('checkforChoice').classList.remove('d-none');
+      };
+    });
+
+    document.getElementById('addNextConditionRuleBtn').onclick = () => {
+      const rulesContainer = document.getElementById('additionalConditionRules');
+      rulesContainer.classList.remove('d-none');
+      const rule = document.createElement('div');
+      rule.className = 'js-condition-rule';
+      rule.innerHTML = `
+        <select name="nextRuleOperator" class="form-select flex-shrink-1 mb-3 js-additionalRuleOperator">
+          <option value="and" selected>And</option>
+          <option value="or">Or</option>
+        </select>
+
+        <div class="bg-body-secondary card p-3">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <span>IF</span>
+
+            <select name="statChoiceOperator" class="form-select flex-shrink-1" id="statChoiceOperator">
+              <option value="stat" selected>Stat</option>
+              <option value="choice">Choice</option>
+            </select>
+          </div>
+
+          <!-- Stat -->
+          <div class="d-flex align-items-center gap-2" id="checkforStat">
+            <span>IS</span>
+            <input type="text" name="statName" class="form-control js-conditionStatName" id="" placeholder="Stat name">
+            <select name="statOperator" class="form-select flex-shrink-1 w-25" id="">
+              <option value="equals">equals</option>
+              <option value="notEquals">not equals</option>
+              <option value="lessThan">less than</option>
+              <option value="greaterThan">greater than</option>
+              <option value="lessOrEquals">less or equals</option>
+              <option value="greaterOrEquals">greater or equals</option>
+            </select>
+            <input type="number" name="statValue" class="form-control flex-shrink-1 w-25" id="" placeholder="0">
+          </div>
+
+          <!-- Choice -->
+          <div class="d-flex align-items-center gap-2 d-none" id="checkforChoice">
+            <span class="flex-shrink-0">of the</span>
+            <select class="form-select js-next-stepID-list js-conditionStepName" aria-label="Steps list"></select>
+            <span class="flex-shrink-0">was</span>
+            <select name="valueOperator" class="form-select w-25 flex-shrink-1" id="">
+              <option value="equals">equals</option>
+              <option value="notEquals">not equals</option>
+            </select>
+            <input type="text" name="choiceValue" class="form-control flex-shrink-1" id="" placeholder="intellectual">
+          </div>
+
+          <div class="mt-3">
+            <button class="btn btn-outline-danger btn-sm js-remove-conditionRule" type="button">Remove rule</button>
+          </div>
+        </div>
+      </div>
+      `;
+      rulesContainer.appendChild(rule);
+    };
       
   },
 
   createChapterElement(index, title, id) {
-    const chapterElement = document.createElement('h6');
-    chapterElement.className = 'chapter-title';
+    const chapterElement = document.createElement('h5');
+    chapterElement.className = 'chapter-title d-flex align-items-center justify-content-between m-0';
     chapterElement.setAttribute('data-id', id);
-    chapterElement.textContent = index + 1 + ". " + title;
+    chapterElement.append(document.createElement('span'));
+
+    chapterElement.querySelector('span').textContent = title;
+
+    const controls = `
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary btn-sm js-edit-chapter" type="button">Edit</button>
+        <button class="btn btn-outline-danger btn-sm js-remove-chapter" type="button">Remove</button>
+      </div>
+    `;
+
+    chapterElement.innerHTML += controls;
     return chapterElement;
   },
 
   updateStepsSelects() {
-    this.steps = [...this.chapters.flatMap(ch => ch.steps), ...this.sideChapters.flatMap(ch => ch.steps)];
+    constructor.steps = [...constructor.chapters.flatMap(ch => ch.steps), ...constructor.sideChapters.flatMap(ch => ch.steps)];
 
     document.querySelectorAll('.js-next-stepID-list').forEach(list => {
       list.innerHTML = '';
-      this.steps.forEach(step => {
+      constructor.steps.forEach(step => {
         const option = document.createElement('option');
         option.value = step.id;
         option.text = step.name;
@@ -92,28 +249,45 @@ const constructor = {
     });
   },
 
+  updateChaptersSelects() {
+    const chapters = [...constructor.chapters, ...constructor.sideChapters];
+
+    document.querySelectorAll('.js-chaptersID-List').forEach(list => {
+      list.innerHTML = '';
+      chapters.forEach(chapter => {
+        const option = document.createElement('option');
+        option.value = chapter.id;
+        option.text = chapter.title;
+        list.add(option);
+      });
+    });
+  },
+
   renderChaptersList(data, chaptersContainer) {
-    const chapterBox = document.createElement('div');
-    chapterBox.className = 'chapter-box';
-    chaptersContainer.appendChild(chapterBox);
-    
     data.forEach((chapter, index) => {
+      const chapterBox = document.createElement('div');
+      chapterBox.className = 'card p-3 chapter-box';
+      chaptersContainer.appendChild(chapterBox);
       const parentChapterTitle = chapter.title;
       chapterBox.appendChild(this.createChapterElement(index, parentChapterTitle, chapter.id));
 
-      const list = document.createElement('ul');
-      list.className = 'list-group';
-      chapterBox.appendChild(list);
+      
       
       const steps = chapter.steps;
-      steps.forEach(step => {
-        const option = document.createElement('li');
-        option.className = 'list-group-item';
-        option.setAttribute('data-id', step.id);
-        option.textContent = step.name;
-        list.appendChild(option);
+      if (steps.length) {
+        const list = document.createElement('ul');
+        list.className = 'list-group list-group-flush mt-2';
         chapterBox.appendChild(list);
-      });
+        
+        steps.forEach(step => {
+          const option = document.createElement('li');
+          option.className = 'list-group-item m-0';
+          option.setAttribute('data-id', step.id);
+          option.textContent = step.name;
+          list.appendChild(option);
+          chapterBox.appendChild(list);
+        });
+      };
     });
   },
 
@@ -179,6 +353,11 @@ const constructor = {
 
     return nextStepCondition;
   },
+
+  saveNovelToLocalStorage() {
+    const jsonString = JSON.stringify({ chapters: this.chapters, sideChapters: this.sideChapters }, null, 2);
+    localStorage.setItem('constructedNovel', jsonString);
+  }
 };
 
-constructor.init();
+document.addEventListener('DOMContentLoaded', () => constructor.init());

@@ -55,7 +55,7 @@ const app = {
           this.currentChapter = this.chapters.find(ch => ch.id === savedProgress.currentChapterId) || this.sideChapters.find(ch => ch.id === savedProgress.currentChapterId);
           this.currentStep = this.currentChapter.steps.find(st => st.id === savedProgress.currentStepId) || this.currentChapter.steps.find(st => st.id === savedProgress.currentStepId);
         } else {
-            this.loadChapter("chapter1");
+            this.loadChapter(this.chapters[0].id || this.sideChapters[0].id);
         };
 
         this.updateUI();
@@ -178,7 +178,7 @@ const app = {
       localStorage.removeItem(this.progressKey);
       this.stats = {};
       this.logs = [];
-      this.loadChapter("chapter1");
+      this.loadChapter(app.chapters[0].id || app.sideChapters[0].id);
       this.updateUI();
     }
   },
