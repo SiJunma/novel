@@ -12,6 +12,8 @@ const constructor = {
       .catch(error => console.error("Error loading data:", error));
     };
 
+    document.getElementById('additionalConditionRules').appendChild(constructor.renderConditionRule(true));
+
     function proceedNovelJSON(data) {
       constructor.chapters = data.chapters;
       constructor.sideChapters = data.sideChapters;
@@ -23,7 +25,7 @@ const constructor = {
 
       constructor.renderChaptersList(data.chapters, document.getElementById('listOfChapters'));
       constructor.renderChaptersList(data.sideChapters, document.getElementById('listOfChapters'));
-    }
+    };
 
     document.getElementById('downloadJsonBtn').onclick = () => {
       const data = {
@@ -147,73 +149,24 @@ const constructor = {
       });
     });
 
-    document.getElementById('statChoiceOperator').addEventListener('change', (e) => {
-      if (e.target.value === 'stat') {
-        document.getElementById('checkforStat').classList.remove('d-none');
-        document.getElementById('checkforChoice').classList.add('d-none');
-      } else {
-        document.getElementById('checkforStat').classList.add('d-none');
-        document.getElementById('checkforChoice').classList.remove('d-none');
+    document.getElementById('conditionConstructor').addEventListener('click', (e) => {
+      if (e.target.classList.contains('js-conditionStatChoiceOperator')) {
+        console.log(e.target.closest('.js-condition-rule'))
+        if (e.target.value === 'stat') {
+          e.target.closest('.js-condition-rule').querySelector('.js-checkforStatBox').classList.remove('d-none');
+          e.target.closest('.js-condition-rule').querySelector('.js-checkforChoiceBox').classList.add('d-none');
+        } else {
+          e.target.closest('.js-condition-rule').querySelector('.js-checkforStatBox').classList.add('d-none');
+          e.target.closest('.js-condition-rule').querySelector('.js-checkforChoiceBox').classList.remove('d-none');
+        };
       };
     });
 
     document.getElementById('addNextConditionRuleBtn').onclick = () => {
       const rulesContainer = document.getElementById('additionalConditionRules');
       rulesContainer.classList.remove('d-none');
-      const rule = document.createElement('div');
-      rule.className = 'js-condition-rule';
-      rule.innerHTML = `
-        <select name="nextRuleOperator" class="form-select flex-shrink-1 mb-3 js-additionalRuleOperator">
-          <option value="and" selected>And</option>
-          <option value="or">Or</option>
-        </select>
-
-        <div class="bg-body-secondary card p-3">
-          <div class="d-flex align-items-center gap-2 mb-3">
-            <span>IF</span>
-
-            <select name="statChoiceOperator" class="form-select flex-shrink-1" id="statChoiceOperator">
-              <option value="stat" selected>Stat</option>
-              <option value="choice">Choice</option>
-            </select>
-          </div>
-
-          <!-- Stat -->
-          <div class="d-flex align-items-center gap-2" id="checkforStat">
-            <span>IS</span>
-            <input type="text" name="statName" class="form-control js-conditionStatName" id="" placeholder="Stat name">
-            <select name="statOperator" class="form-select flex-shrink-1 w-25" id="">
-              <option value="equals">equals</option>
-              <option value="notEquals">not equals</option>
-              <option value="lessThan">less than</option>
-              <option value="greaterThan">greater than</option>
-              <option value="lessOrEquals">less or equals</option>
-              <option value="greaterOrEquals">greater or equals</option>
-            </select>
-            <input type="number" name="statValue" class="form-control flex-shrink-1 w-25" id="" placeholder="0">
-          </div>
-
-          <!-- Choice -->
-          <div class="d-flex align-items-center gap-2 d-none" id="checkforChoice">
-            <span class="flex-shrink-0">of the</span>
-            <select class="form-select js-next-stepID-list js-conditionStepName" aria-label="Steps list"></select>
-            <span class="flex-shrink-0">was</span>
-            <select name="valueOperator" class="form-select w-25 flex-shrink-1" id="">
-              <option value="equals">equals</option>
-              <option value="notEquals">not equals</option>
-            </select>
-            <input type="text" name="choiceValue" class="form-control flex-shrink-1" id="" placeholder="intellectual">
-          </div>
-
-          <div class="mt-3">
-            <button class="btn btn-outline-danger btn-sm js-remove-conditionRule" type="button">Remove rule</button>
-          </div>
-        </div>
-      </div>
-      `;
-      rulesContainer.appendChild(rule);
+      rulesContainer.appendChild(constructor.renderConditionRule(false));
     };
-      
   },
 
   createChapterElement(index, title, id) {
@@ -289,6 +242,79 @@ const constructor = {
         });
       };
     });
+  },
+
+  renderConditionRule(isFirstRule) {
+    const rule = document.createElement('div');
+    rule.className = 'js-condition-rule';
+
+    rule.innerHTML = `
+      ${isFirstRule ? '' : `
+        <select name="nextRuleOperator" class="form-select flex-shrink-1 mb-3 js-additionalRuleOperator">
+          <option value="and" selected>And</option>
+          <option value="or">Or</option>
+        </select>
+      `}
+
+      <div class="bg-body-secondary card p-3">
+
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <span>IF</span>
+
+          <select name="statChoiceOperator" class="form-select flex-shrink-1 js-conditionStatChoiceOperator">
+            <option value="stat" selected>Stat</option>
+            <option value="choice">Choice</option>
+          </select>
+        </div>
+
+        <!-- Stat -->
+        <div class="d-flex align-items-center gap-2 js-checkforStatBox">
+          <span>IS</span>
+          <input type="text" name="statName" class="form-control js-conditionStatName" placeholder="Stat name">
+          <select name="statOperator" class="form-select flex-shrink-1 w-25 js-conditionStatOperator">
+            <option value="equals">equals</option>
+            <option value="notEquals">not equals</option>
+            <option value="lessThan">less than</option>
+            <option value="greaterThan">greater than</option>
+            <option value="lessOrEquals">less or equals</option>
+            <option value="greaterOrEquals">greater or equals</option>
+          </select>
+          <input type="number" name="statValue" class="form-control flex-shrink-1 w-25 js-conditionStatValue" placeholder="0">
+        </div>
+
+        <!-- Choice -->
+        <div class="d-flex align-items-center gap-2 js-checkforChoiceBox d-none">
+          <span class="flex-shrink-0">of the</span>
+          <select class="form-select js-next-stepID-list js-conditionStepName" aria-label="Steps list"></select>
+          <span class="flex-shrink-0">was</span>
+          <select name="valueOperator" class="form-select w-25 flex-shrink-1 js-conditionValueOperator">
+            <option value="equals">equals</option>
+            <option value="notEquals">not equals</option>
+          </select>
+          <input type="text" name="choiceValue" class="form-control flex-shrink-1 js-conditionChoiceValue" placeholder="intellectual">
+        </div>
+
+        ${isFirstRule ? '' : `
+          <div class="mt-3">
+            <button class="btn btn-outline-danger btn-sm js-remove-conditionRule" type="button">Remove rule</button>
+          </div>
+        `}
+          
+      </div>
+    `;
+
+    const nextStepIdDirectSelect = document.getElementById('nextStepId_direct');
+    const options = [...nextStepIdDirectSelect.options];
+    const conditionStepNameSelect = rule.querySelector('.js-conditionStepName');
+
+    options.forEach(option => {
+      const optionCopy = document.createElement('option');
+      optionCopy.value = option.value;
+      optionCopy.text = option.text;
+      conditionStepNameSelect.appendChild(optionCopy);
+    });
+
+    return rule;
   },
 
   createStatForm(index, stat, value) {
