@@ -87,12 +87,7 @@ const constructor = {
 
       constructor.chapters.push(data);
 
-      const listOfChapters = document.getElementById('listOfChapters');
-      listOfChapters.innerHTML = '';
-
       document.getElementById('chapterTitle').value = '';
-
-      constructor.proceedNovelJSON({ chapters: constructor.chapters });
 
       this.saveNovelToLocalStorage();
     };
@@ -138,9 +133,6 @@ const constructor = {
           constructor.chapters = constructor.chapters.filter(chapter => chapter.id !== chapterId);
 
           constructor.saveNovelToLocalStorage();
-          document.getElementById('listOfChapters').innerHTML = '';
-
-          constructor.proceedNovelJSON({ chapters: constructor.chapters });
         };
       };
     });
@@ -175,7 +167,6 @@ const constructor = {
 
     document.getElementById('conditionConstructor').addEventListener('click', (e) => {
       if (e.target.classList.contains('js-conditionStatChoiceOperator')) {
-        console.log(e.target.closest('.js-condition-rule'))
         if (e.target.value === 'stat') {
           e.target.closest('.js-condition-rule').querySelector('.js-checkforStatBox').classList.remove('d-none');
           e.target.closest('.js-condition-rule').querySelector('.js-checkforChoiceBox').classList.add('d-none');
@@ -291,6 +282,8 @@ const constructor = {
 
       document.getElementById('createChoiceForm').classList.add('d-none');
       document.getElementById('addChoiceBtn').classList.remove('d-none');
+
+      document.getElementById('createStepBtn').disabled = !constructor.validateStepForm();
     };
 
     //Saving a Step
@@ -304,22 +297,56 @@ const constructor = {
         const stepName = e.target.closest('li.list-group-item').querySelector('span').textContent;
 
         const confirmation = confirm(`Are you sure you want to remove ${stepName} step?`);
+        
+        if (confirmation) {
+          const stepId = e.target.closest('li.list-group-item').getAttribute('data-id');
+          constructor.deleteStepFromData(stepId);
+        };
+      };
+    });
+
+    // Validation of create step form inputs
+    document.querySelectorAll('.js-step-validation').forEach(input => {
+      input.addEventListener('input', () => {
+        document.getElementById('createStepBtn').disabled = !constructor.validateStepForm();
+      });
+    });
+
+    // .js-remove-renderedChoice
+    document.getElementById('choicesContainer').addEventListener('click', (e) => {
+      if (e.target.closest('.js-remove-renderedChoice')) {
+        const confirmation = confirm('Are you sure you want to remove this choice?');
         if (!confirmation) {
           return;
         };
+        e.target.closest('.js-choiceItem').remove();
+        const choicesContainer = document.getElementById('choicesContainer');
 
-        console.log(e.target.closest('li.list-group-item').getAttribute('data-id'));
-        const stepId = e.target.closest('li.list-group-item').getAttribute('data-id');
-
-        constructor.chapters.forEach(chapter => {
-          chapter.steps = chapter.steps.filter(step => step.id !== stepId);
-        });
-
-        constructor.saveNovelToLocalStorage();
-        document.getElementById('listOfChapters').innerHTML = '';
-        constructor.proceedNovelJSON({ chapters: constructor.chapters });
+        if (choicesContainer.querySelectorAll('.js-choiceItem').length === 0) {
+          choicesContainer.classList.add('d-none');
+        };
       };
     });
+  },
+
+  deleteStepFromData(stepId){
+    constructor.chapters.forEach(chapter => {
+      chapter.steps = chapter.steps.filter(step => step.id !== stepId);
+    });
+
+    constructor.saveNovelToLocalStorage();
+  },
+
+  validateStepForm() {
+    const stepName = document.getElementById('stepName').value;
+    const stepText = document.getElementById('stepText').value;
+    const isChoices = document.getElementById('choicesContainer').querySelectorAll('.js-choiceItem').length;
+
+    if(stepName && stepText && isChoices) {
+      return true;
+    } else {
+      return false;
+    };
   },
 
   savingStepToData() {
@@ -342,8 +369,6 @@ const constructor = {
     });
 
     constructor.saveNovelToLocalStorage();
-    document.getElementById('listOfChapters').innerHTML = '';
-    constructor.proceedNovelJSON({ chapters: constructor.chapters });
   },
 
   proceedNovelJSON(data) {
@@ -581,8 +606,6 @@ const constructor = {
       } 
     };
 
-    console.log(conditionData);
-
     const UIElement = document.createElement('div');
     UIElement.className = 'border-bottom border-top py-3 d-flex flex-column justify-content-between gap-2 flex-lg-row align-items-start js-UIcondition';
     UIElement.appendChild(document.createElement('span'));
@@ -640,6 +663,10 @@ const constructor = {
   },
 
   saveNovelToLocalStorage() {
+    const listOfChapters = document.getElementById('listOfChapters');
+    listOfChapters.innerHTML = '';
+    constructor.proceedNovelJSON({ chapters: constructor.chapters });
+    
     const jsonString = JSON.stringify({ chapters: this.chapters }, null, 2);
     localStorage.setItem('constructedNovel', jsonString);
   }

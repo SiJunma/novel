@@ -77,12 +77,12 @@
 
           <div class="mb-3">
             <label for="stepName" class="form-label">Step title</label>
-            <input type="text" class="form-control" id="stepName" placeholder="Title">
+            <input type="text" class="form-control js-step-validation" id="stepName" placeholder="Title">
           </div>
 
           <div class="mb-3">
             <label for="stepText" class="form-label">Step text</label>
-            <textarea class="form-control" id="stepText" rows="3"></textarea>
+            <textarea class="form-control js-step-validation" id="stepText" rows="3"></textarea>
           </div>
 
           <div id="choicesContainer" class="d-flex gap-2 flex-column mb-3 d-none"></div>
@@ -173,7 +173,7 @@
 
           <div class="mt-3">
             <hr class="my-3">
-            <button class="btn btn-primary" id="createStepBtn" type="button">Create step</button>
+            <button class="btn btn-primary" id="createStepBtn" type="button" disabled>Create step</button>
           </div>
         </div>
       </div>
