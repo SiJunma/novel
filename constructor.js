@@ -430,7 +430,7 @@ const constructor = {
     console.log(conditionData);
 
     const UIElement = document.createElement('div');
-    UIElement.className = 'border-bottom border-top py-3 d-flex flex-column justify-content-between gap-2 flex-lg-row js-UIcondition';
+    UIElement.className = 'border-bottom border-top py-3 d-flex flex-column justify-content-between gap-2 flex-lg-row align-items-start js-UIcondition';
     UIElement.appendChild(document.createElement('span'));
     UIElement.querySelector('span').textContent = conditionUI;
 
