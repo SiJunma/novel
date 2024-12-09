@@ -5,29 +5,17 @@ const constructor = {
   init() {
     if (localStorage.getItem('constructedNovel')) {
       const data = JSON.parse(localStorage.getItem('constructedNovel'));
-      proceedNovelJSON(data);
+      constructor.proceedNovelJSON(data);
     } else {
       fetch('stepsData.json')
       .then(response => response.json())
       .then(data => {
-        proceedNovelJSON(data)
+        constructor.proceedNovelJSON(data)
       })
       .catch(error => console.error("Error loading data:", error));
     };
 
     document.getElementById('additionalConditionRules').appendChild(constructor.renderConditionRule(true));
-
-    function proceedNovelJSON(data) {
-      constructor.chapters = data.chapters;
-      constructor.steps = [...constructor.chapters.flatMap(ch => ch.steps)];
-
-      constructor.updateStepsSelects();
-      constructor.updateChaptersSelects();
-
-      console.log(data);
-
-      constructor.renderChaptersList(data.chapters, document.getElementById('listOfChapters'));
-    };
 
     document.getElementById('downloadJsonBtn').onclick = () => {
       const data = {
@@ -104,7 +92,7 @@ const constructor = {
 
       document.getElementById('chapterTitle').value = '';
 
-      proceedNovelJSON({ chapters: constructor.chapters });
+      constructor.proceedNovelJSON({ chapters: constructor.chapters });
 
       this.saveNovelToLocalStorage();
     };
@@ -152,7 +140,7 @@ const constructor = {
           constructor.saveNovelToLocalStorage();
           document.getElementById('listOfChapters').innerHTML = '';
 
-          proceedNovelJSON({ chapters: constructor.chapters });
+          constructor.proceedNovelJSON({ chapters: constructor.chapters });
         };
       };
     });
@@ -307,27 +295,67 @@ const constructor = {
 
     //Saving a Step
     document.getElementById('createStepBtn').onclick = () => {
-      const stepTitle = document.getElementById('stepName').value;
-      const parentChapter = document.getElementById('parentChapter').value;
-      const steptext = document.getElementById('stepText').value;
-
-      const choices = [];
-      document.getElementById('choicesContainer').querySelectorAll('.js-choiceItem').forEach(choice => {
-        choices.push(JSON.parse(choice.getAttribute('data-choice')));
-      });
-
-      const parentChapterObject = constructor.chapters.find(chapter => chapter.id === parentChapter);
-
-      parentChapterObject.steps.push({
-        name: stepTitle,
-        text: steptext,
-        choices: choices,
-        id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
-      });
-
-      constructor.saveNovelToLocalStorage();
-      proceedNovelJSON({ chapters: constructor.chapters });
+      constructor.savingStepToData();
     };
+
+    //delete step from chapter's list
+    document.getElementById('listOfChapters').addEventListener('click', (e) => {
+      if (e.target.closest('.js-remove-listed-step')) {
+        const stepName = e.target.closest('li.list-group-item').querySelector('span').textContent;
+
+        const confirmation = confirm(`Are you sure you want to remove ${stepName} step?`);
+        if (!confirmation) {
+          return;
+        };
+
+        console.log(e.target.closest('li.list-group-item').getAttribute('data-id'));
+        const stepId = e.target.closest('li.list-group-item').getAttribute('data-id');
+
+        constructor.chapters.forEach(chapter => {
+          chapter.steps = chapter.steps.filter(step => step.id !== stepId);
+        });
+
+        constructor.saveNovelToLocalStorage();
+        document.getElementById('listOfChapters').innerHTML = '';
+        constructor.proceedNovelJSON({ chapters: constructor.chapters });
+      };
+    });
+  },
+
+  savingStepToData() {
+    const stepTitle = document.getElementById('stepName').value;
+    const parentChapter = document.getElementById('parentChapter').value;
+    const steptext = document.getElementById('stepText').value;
+    
+    const choices = [];
+    document.getElementById('choicesContainer').querySelectorAll('.js-choiceItem').forEach(choice => {
+      choices.push(JSON.parse(choice.getAttribute('data-choice')));
+    });
+
+    const parentChapterObject = constructor.chapters.find(chapter => chapter.id === parentChapter);
+
+    parentChapterObject.steps.push({
+      name: stepTitle,
+      text: steptext,
+      choices: choices,
+      id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    });
+
+    constructor.saveNovelToLocalStorage();
+    document.getElementById('listOfChapters').innerHTML = '';
+    constructor.proceedNovelJSON({ chapters: constructor.chapters });
+  },
+
+  proceedNovelJSON(data) {
+    constructor.chapters = data.chapters;
+    constructor.steps = [...constructor.chapters.flatMap(ch => ch.steps)];
+
+    constructor.updateStepsSelects();
+    constructor.updateChaptersSelects();
+
+    console.log(data);
+
+    constructor.renderChaptersList(data.chapters, document.getElementById('listOfChapters'));
   },
 
   createChapterElement(index, title, id) {
@@ -391,9 +419,21 @@ const constructor = {
         
         steps.forEach(step => {
           const option = document.createElement('li');
-          option.className = 'list-group-item m-0';
+          option.className = 'list-group-item m-0 d-flex justify-content-between align-items-start';
           option.setAttribute('data-id', step.id);
-          option.textContent = step.name;
+
+          const span = document.createElement('span');
+          span.textContent = step.name ? step.name : 'N/A';
+          option.appendChild(span);
+
+          const controls = `
+            <div class="d-flex opacity-btns">
+              <button class="btn btn-sm js-edit-listed-Step" type="button" data-bs-toggle="modal" data-bs-target="#createStepModal"><img src="edit-text.png" alt="Edit" width="18" height="18"></button>
+              <button class="btn btn-sm js-remove-listed-step" type="button"><img src="trash.png" alt="Remove" width="18" height="18"></button>
+            </div>
+          `;
+
+          option.innerHTML += controls;
           list.appendChild(option);
           chapterBox.appendChild(list);
         });

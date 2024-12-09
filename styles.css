@@ -40,3 +40,13 @@ h1 {
   border: 1px solid #ccc;
   border-radius: 5px;
 }
+
+.opacity-btns .btn {
+  opacity: 0.8;
+  transition: opacity 0.3s ease, scale 0.1s ease;
+}
+
+.opacity-btns .btn:hover {
+  opacity: 1;
+  scale: 1.08;
+}
