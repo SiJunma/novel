@@ -214,6 +214,120 @@ const constructor = {
       rulesContainer.appendChild(constructor.renderConditionRule(true));
       document.getElementById('nextStepId_conditionReturn').value = constructor.steps[0].id;
     };
+
+    //Saving a Choice
+    document.getElementById('saveChoiceBtn').onclick = () => {
+      const choiceText = document.getElementById('choiceText').value;
+      const choiceValue = document.getElementById('choiceValue').value;
+
+      const stats = {};
+      const statsContainer = document.getElementById('statsContainer');
+      statsContainer.querySelectorAll('.stats-item').forEach(item => {
+        const statName = item.querySelector('.js-statName').value;
+        const statValue = item.querySelector('.js-statValue').value;
+        stats[statName] = statValue;
+      });
+
+      let nextStepId;
+      let nextStepUI = '';
+
+      if (document.getElementById('nextStep_id').checked) {
+        nextStepId = document.getElementById('nextStepId_direct').value;
+        nextStepUI = constructor.steps.find(step => step.id === nextStepId).name;
+      } else if (document.getElementById('nextStep_condition').checked) {
+        const conditionsList = document.getElementById('nextStepConditionsList');
+        // "() => { if(app.stats.intellectual > 1) { return 'chapter2_step1'; } else if (app.logs.find(obj => obj.stepId === 'chapter1_step1' && obj.value === 'intellectual')) { return 'chapter1_step1'; } else { return 'chapter1_step4'; }; }"
+        nextStepId = '() => {';
+
+        conditionsList.querySelectorAll('.js-UIcondition').forEach((rule, index) => {
+          const data = JSON.parse(rule.getAttribute('data-condition'));
+          const functionString = data.conditionString;
+          if (index === 0) {
+            nextStepId += ` if`;
+          } else {
+            nextStepId += ` else if`;
+          };
+
+          nextStepId += functionString;
+
+          nextStepUI += data.conditionsUIString + '/n'
+        });
+
+        nextStepId += ` else { return '${document.getElementById('nextStepId_default').value}'; }; }`;
+      };
+
+      const choiceObject = {
+        text: choiceText,
+        value: choiceValue,
+        nextStepId: nextStepId,
+        stats: stats
+      };
+
+      const choicesContainer = document.getElementById('choicesContainer');
+      const choiceElement = document.createElement('div');
+      choiceElement.className = 'd-flex justify-content-between align-items-start bg-body-tertiary card flex-row p-3 js-choiceItem';
+      choiceElement.setAttribute('data-choice', JSON.stringify(choiceObject));
+      let statsText = '';
+      for (let stat in stats) {
+        statsText += `${stat}: ${stats[stat]}`;
+        if (Object.keys(stats).indexOf(stat) !== Object.keys(stats).length - 1) {
+          statsText += ', ';
+        } else {
+          statsText += '.';
+        };
+      };
+
+      choiceElement.innerHTML = `
+        <div class="">
+          <b>Text of a choice:</b>
+          <div class="mb-2">${choiceText}</div>
+
+          <div class="mb-2"><b>Value of a choice:</b> <span>${choiceValue}</span></div>
+
+          <div class="mb-2"><b>Stats:</b> <span>${statsText}</span></div>
+
+          <div>
+            <b>Next step:</b> 
+            <span>${nextStepUI.replaceAll('/n', '<br>')}</span>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-primary btn-sm js-edit-renderedChoice" type="button" data-bs-toggle="modal" data-bs-target="#createChapterModal">Edit</button>
+          <button class="btn btn-outline-danger btn-sm js-remove-renderedChoice" type="button">Remove</button>
+        </div>
+      `;
+
+      choicesContainer.appendChild(choiceElement);
+      choicesContainer.classList.remove('d-none');
+
+      document.getElementById('createChoiceForm').classList.add('d-none');
+      document.getElementById('addChoiceBtn').classList.remove('d-none');
+    };
+
+    //Saving a Step
+    document.getElementById('createStepBtn').onclick = () => {
+      const stepTitle = document.getElementById('stepName').value;
+      const parentChapter = document.getElementById('parentChapter').value;
+      const steptext = document.getElementById('stepText').value;
+
+      const choices = [];
+      document.getElementById('choicesContainer').querySelectorAll('.js-choiceItem').forEach(choice => {
+        choices.push(JSON.parse(choice.getAttribute('data-choice')));
+      });
+
+      const parentChapterObject = constructor.chapters.find(chapter => chapter.id === parentChapter);
+
+      parentChapterObject.steps.push({
+        name: stepTitle,
+        text: steptext,
+        choices: choices,
+        id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+      });
+
+      constructor.saveNovelToLocalStorage();
+      proceedNovelJSON({ chapters: constructor.chapters });
+    };
   },
 
   createChapterElement(index, title, id) {
@@ -450,8 +564,8 @@ const constructor = {
     const statItem = document.createElement('div');
     statItem.className = 'd-flex gap-2 stats-item';
     statItem.innerHTML = `
-      <input type="text" class="form-control" id="statItem_${index}" placeholder="Stat name" value="${stat}">
-      <input type="number" class="form-control w-25" id="statValue_${index}" placeholder="Stat value" value="${value}">
+      <input type="text" class="form-control js-statName" id="statItem_${index}" placeholder="Stat name" value="${stat}">
+      <input type="number" class="form-control w-25 js-statValue" id="statValue_${index}" placeholder="Stat value" value="${value}">
       <button class="btn btn-outline-danger js-remove-stat" type="button">Remove</button>
     `;
     
