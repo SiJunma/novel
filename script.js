@@ -1,6 +1,5 @@
 const app = {
   chapters: null,
-  sideChapters: null,
   currentChapter: null,
   currentStep: null,
   stats: {},
@@ -12,7 +11,6 @@ const app = {
       .then(response => response.json())
       .then(data => {
         this.chapters = data.chapters;
-        this.sideChapters = data.sideChapters;
 
         const stepsSelect = document.getElementById('step-select');
 
@@ -27,20 +25,6 @@ const app = {
             stepsSelect.add(option);
           });
         });
-
-        if (this.sideChapters.length > 0) {
-          this.sideChapters.forEach(chapter => {
-            const parentChapterTitle = chapter.title;
-
-            const steps = chapter.steps;
-            steps.forEach(step => {
-              const option = document.createElement('option');
-              option.value = step.id;
-              option.text = `${parentChapterTitle} - ${step.name}`;
-              stepsSelect.add(option);
-            });
-          });
-        };
         
         stepsSelect.addEventListener('change', () => {
           const selectedStepId = stepsSelect.value;
@@ -52,10 +36,10 @@ const app = {
         if (savedProgress) {
           this.stats = savedProgress.stats;
           this.logs = savedProgress.logs;
-          this.currentChapter = this.chapters.find(ch => ch.id === savedProgress.currentChapterId) || this.sideChapters.find(ch => ch.id === savedProgress.currentChapterId);
+          this.currentChapter = this.chapters.find(ch => ch.id === savedProgress.currentChapterId);
           this.currentStep = this.currentChapter.steps.find(st => st.id === savedProgress.currentStepId) || this.currentChapter.steps.find(st => st.id === savedProgress.currentStepId);
         } else {
-            this.loadChapter(this.chapters[0].id || this.sideChapters[0].id);
+            this.loadChapter(this.chapters[0].id);
         };
 
         this.updateUI();
@@ -73,10 +57,10 @@ const app = {
 
   loadStep(stepId) {
     
-      const allSteps = [...this.chapters.flatMap(ch => ch.steps), ...this.sideChapters.flatMap(ch => ch.steps)];
+      const allSteps = [...this.chapters.flatMap(ch => ch.steps)];
       
       this.currentStep = allSteps.find(st => st.id === stepId);
-      this.currentChapter = this.chapters.find(ch => ch.steps.some(st => st.id === stepId)) || this.sideChapters.find(ch => ch.steps.some(st => st.id === stepId));
+      this.currentChapter = this.chapters.find(ch => ch.steps.some(st => st.id === stepId));
 
       this.saveProgress();
       this.render();
@@ -178,7 +162,7 @@ const app = {
       localStorage.removeItem(this.progressKey);
       this.stats = {};
       this.logs = [];
-      this.loadChapter(app.chapters[0].id || app.sideChapters[0].id);
+      this.loadChapter(app.chapters[0].id);
       this.updateUI();
     }
   },

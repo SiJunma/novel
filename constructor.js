@@ -1,4 +1,7 @@
 const constructor = {
+  chapters: [],
+  steps: [],
+
   init() {
     if (localStorage.getItem('constructedNovel')) {
       const data = JSON.parse(localStorage.getItem('constructedNovel'));
@@ -16,7 +19,7 @@ const constructor = {
 
     function proceedNovelJSON(data) {
       constructor.chapters = data.chapters;
-      constructor.sideChapters = data.sideChapters;
+      constructor.steps = [...constructor.chapters.flatMap(ch => ch.steps)];
 
       constructor.updateStepsSelects();
       constructor.updateChaptersSelects();
@@ -24,13 +27,11 @@ const constructor = {
       console.log(data);
 
       constructor.renderChaptersList(data.chapters, document.getElementById('listOfChapters'));
-      constructor.renderChaptersList(data.sideChapters, document.getElementById('listOfChapters'));
     };
 
     document.getElementById('downloadJsonBtn').onclick = () => {
       const data = {
         chapters: this.chapters,
-        sideChapters: this.sideChapters
       };
 
       const jsonString = JSON.stringify(data, null, 2);
@@ -56,32 +57,56 @@ const constructor = {
       document.getElementById('createChapterBtn').disabled = e.target.value === '';
     });
 
+    document.getElementById('openChapterEditorBtn').addEventListener('click', function(e) {
+      document.getElementById('createChapterBtn').removeAttribute('data-id');
+      document.getElementById('chapterTitle').value = '';
+      document.getElementById('createChapterModalLabel').textContent = 'Create Chapter';
+      document.getElementById('createChapterBtn').disabled = true
+    });
+
+    document.getElementById('nextStepConditionsList').addEventListener('click', function(e) {
+      const conditionsList = document.getElementById('nextStepConditionsList');
+
+      if(e.target.classList.contains('js-remove-UIcondition')) {
+        const confirmRemoval = confirm('Are you sure you want to remove this condition?');
+        if(confirmRemoval) {
+          e.target.closest('.js-UIcondition').remove();
+
+          if(conditionsList.querySelectorAll('.js-UIcondition').length === 0) {
+            conditionsList.classList.add('d-none');
+          };
+        };
+      };
+    });
+
     document.getElementById('createChapterBtn').onclick = () => {
       const title = document.getElementById('chapterTitle').value;
-      const parentKey = document.getElementById('chapterType').value;
+      const chapterId = document.getElementById('createChapterBtn').getAttribute('data-id');
 
       const data = {
-        id: parentKey + Date.now(),
+        id: chapterId ? chapterId : 'chapter' + Date.now(),
         title: title,
-        steps: []
       };
+
+      if(chapterId) {
+        const chapter = constructor.chapters.find(ch => ch.id === chapterId);
+        data.steps = chapter.steps;
+
+        constructor.chapters = constructor.chapters.filter(ch => ch.id !== chapterId);
+      } else {
+        data.steps = [];
+      };
+
+      constructor.chapters.push(data);
 
       const listOfChapters = document.getElementById('listOfChapters');
       listOfChapters.innerHTML = '';
 
-      if (parentKey === 'chapters') {
-        constructor.chapters.push(data);
-      } else {
-        constructor.sideChapters.push(data);
-      };
-
       document.getElementById('chapterTitle').value = '';
-      document.getElementById('chapterType').value = 'chapters';
 
-      proceedNovelJSON({ chapters: constructor.chapters, sideChapters: constructor.sideChapters });
+      proceedNovelJSON({ chapters: constructor.chapters });
 
       this.saveNovelToLocalStorage();
-      window.scrollTo(0, 0);
     };
 
     document.getElementById('cancelChoiceBtn').onclick = () => {
@@ -117,20 +142,31 @@ const constructor = {
     });
 
     document.getElementById('listOfChapters').addEventListener('click', (e) => {
-
       if (e.target.classList.contains('js-remove-chapter')) {
         const chapterId = e.target.closest('.chapter-box').querySelector('.chapter-title').getAttribute('data-id');
 
         const confirmRemoval = confirm(`Are you sure you want to remove chapter: ${e.target.closest('.chapter-box').querySelector('.chapter-title span').textContent}?`);
         if (confirmRemoval) {
           constructor.chapters = constructor.chapters.filter(chapter => chapter.id !== chapterId);
-          constructor.sideChapters = constructor.sideChapters.filter(chapter => chapter.id !== chapterId);
 
           constructor.saveNovelToLocalStorage();
           document.getElementById('listOfChapters').innerHTML = '';
 
-          proceedNovelJSON({ chapters: constructor.chapters, sideChapters: constructor.sideChapters });
+          proceedNovelJSON({ chapters: constructor.chapters });
         };
+      };
+    });
+
+    document.getElementById('listOfChapters').addEventListener('click', (e) => {
+      if (e.target.classList.contains('js-edit-chapter')) {
+        const chapterId = e.target.closest('.chapter-box').querySelector('.chapter-title').getAttribute('data-id');
+        const chapterData = constructor.chapters.find(chapter => chapter.id === chapterId);
+        document.getElementById('createChapterModalLabel').textContent = 'Edit chapter: ' + chapterData.title;
+        document.getElementById('chapterTitle').value = chapterData.title;
+
+        document.getElementById('createChapterBtn').textContent = 'Save';
+        document.getElementById('createChapterBtn').setAttribute('data-id', chapterId);
+        document.getElementById('createChapterBtn').disabled = false;
       };
     });
 
@@ -167,6 +203,17 @@ const constructor = {
       rulesContainer.classList.remove('d-none');
       rulesContainer.appendChild(constructor.renderConditionRule(false));
     };
+
+    document.getElementById('saveNextStepConditionBtn').onclick = () => {
+      const conditionsContainer = document.getElementById('nextStepConditionsList');
+      conditionsContainer.classList.remove('d-none');
+      conditionsContainer.appendChild(constructor.renderConditionSetup());
+
+      const rulesContainer = document.getElementById('additionalConditionRules');
+      rulesContainer.innerHTML = '';
+      rulesContainer.appendChild(constructor.renderConditionRule(true));
+      document.getElementById('nextStepId_conditionReturn').value = constructor.steps[0].id;
+    };
   },
 
   createChapterElement(index, title, id) {
@@ -179,7 +226,7 @@ const constructor = {
 
     const controls = `
       <div class="d-flex gap-2">
-        <button class="btn btn-outline-primary btn-sm js-edit-chapter" type="button">Edit</button>
+        <button class="btn btn-outline-primary btn-sm js-edit-chapter" type="button" data-bs-toggle="modal" data-bs-target="#createChapterModal">Edit</button>
         <button class="btn btn-outline-danger btn-sm js-remove-chapter" type="button">Remove</button>
       </div>
     `;
@@ -189,8 +236,6 @@ const constructor = {
   },
 
   updateStepsSelects() {
-    constructor.steps = [...constructor.chapters.flatMap(ch => ch.steps), ...constructor.sideChapters.flatMap(ch => ch.steps)];
-
     document.querySelectorAll('.js-next-stepID-list').forEach(list => {
       list.innerHTML = '';
       constructor.steps.forEach(step => {
@@ -203,11 +248,9 @@ const constructor = {
   },
 
   updateChaptersSelects() {
-    const chapters = [...constructor.chapters, ...constructor.sideChapters];
-
     document.querySelectorAll('.js-chaptersID-List').forEach(list => {
       list.innerHTML = '';
-      chapters.forEach(chapter => {
+      constructor.chapters.forEach(chapter => {
         const option = document.createElement('option');
         option.value = chapter.id;
         option.text = chapter.title;
@@ -317,13 +360,93 @@ const constructor = {
     return rule;
   },
 
-  createStatForm(index, stat, value) {
-    // <div class="d-flex gap-2 stats-item">
-    //   <input type="text" class="form-control" id="statItem_0" placeholder="Stat name">
-    //   <input type="number" class="form-control w-25" id="statValue_0" placeholder="Stat value">
-    //   <button class="btn btn-outline-danger js-remove-stat" type="button">Remove</button>
-    // </div>
+  renderConditionSetup() {
+    const editorContainer = document.getElementById('additionalConditionRules');
+    const conditionRules = editorContainer.querySelectorAll('.js-condition-rule');
+    const condition = [];
+    let conditionUI = '';
 
+    conditionRules.forEach((rule, index) => {
+      const operatorMap = {
+        equals: '==',
+        notEquals: '!=',
+        lessThan: '<',
+        greaterThan: '>',
+        lessOrEquals: '<=',
+        greaterOrEquals: '>=',
+      };
+
+      const operatorUIMap = {
+        equals: 'equals',
+        notEquals: 'not equals',
+        lessThan: 'less than',
+        greaterThan: 'greater than',
+        lessOrEquals: 'less or equals',
+        greaterOrEquals: 'greater or equals',
+      };
+
+      if(index !== 0) {
+        const operator = rule.querySelector('.js-additionalRuleOperator').value;
+        condition.push(operator === 'and' ? '&&' : '||');
+        conditionUI += ', ' + operator + ' ';
+      } else {
+        conditionUI += 'If ';
+      };
+
+      const param = rule.querySelector('.js-conditionStatChoiceOperator').value; // stat/choice
+      if (param === 'stat') {
+        const statName = rule.querySelector('.js-conditionStatName').value;
+        const operator = rule.querySelector('.js-conditionStatOperator').value;
+        const value = rule.querySelector('.js-conditionStatValue').value;
+
+        condition.push(`app.stats.${statName} ${operatorMap[operator]} ${value}`);
+
+        conditionUI += `"${statName}" stat is ${operatorUIMap[operator]} ${value}`;
+      } else if (param === 'choice') {
+        const stepId = rule.querySelector('.js-conditionStepName').value;
+        const operator = rule.querySelector('.js-conditionValueOperator').value;
+        const value = rule.querySelector('.js-conditionChoiceValue').value;
+
+        condition.push(`app.logs.find(obj => obj.stepId === '${stepId}' && obj.value ${operatorMap[operator]} '${value}')`);
+        conditionUI += `"${constructor.steps.find(step => step.id === stepId).name}" step was ${operatorUIMap[operator]} "${value}"`;
+      };
+    });
+
+    const returnValue = document.getElementById('nextStepId_conditionReturn').value;
+    const returnStepName = constructor.steps.find(step => step.id === returnValue).name;
+
+    conditionUI += `, then go to "${returnStepName}" step.`;
+
+    const conditionData = { 
+      conditionsUIString: conditionUI,
+      conditionString: `(${condition.join(' ')}) { return '${returnValue}'; }`, 
+      conditionArray: condition,
+      returnValue: {
+        stepId: returnValue, 
+        stepName: returnStepName
+      } 
+    };
+
+    console.log(conditionData);
+
+    const UIElement = document.createElement('div');
+    UIElement.className = 'border-bottom border-top py-3 d-flex flex-column justify-content-between gap-2 flex-lg-row js-UIcondition';
+    UIElement.appendChild(document.createElement('span'));
+    UIElement.querySelector('span').textContent = conditionUI;
+
+    UIElement.insertAdjacentHTML('beforeend', `
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary btn-sm js-edit-UIcondition" type="button" data-bs-toggle="modal" data-bs-target="#createConditionModal">Edit</button>
+        <button class="btn btn-outline-danger btn-sm js-remove-UIcondition" type="button">Remove</button>
+      </div>
+    `);
+
+    UIElement.setAttribute('data-condition', JSON.stringify(conditionData));
+
+    return UIElement;
+  },
+
+  createStatForm(index, stat, value) {
     const statItem = document.createElement('div');
     statItem.className = 'd-flex gap-2 stats-item';
     statItem.innerHTML = `
@@ -336,25 +459,7 @@ const constructor = {
   },
 
   createNextStepConditionForm() {
-    // <div class="d-flex gap-2 align-items-center js-next-stepCondition">
-    //   <span>If</span>
-    //   <input type="text" name="statName" class="form-control" id="" placeholder="Stat name">
-    //   <select name="statOperator" class="form-select flex-shrink-1" id="">
-    //     <option value="equals">equals</option>
-    //     <option value="notEquals">not equals</option>
-    //     <option value="lessThan">less than</option>
-    //     <option value="greaterThan">greater than</option>
-    //     <option value="lessOrEquals">less or equals</option>
-    //     <option value="greaterOrEquals">greater or equals</option>
-    //   </select>
-    //   <input type="number" name="statValue" class="form-control flex-shrink-1 w-25" id="" placeholder="0">
-    //   <span class="flex-shrink-0">then go to</span>
-    //   <select class="form-select js-next-stepID-list" aria-label="Steps list"></select>
-    //   <button class="btn btn-outline-danger js-remove-condition" type="button">Remove</button>
-    // </div>
-
     const selectsList = document.getElementById('nextStepId_direct');
-    //fill js-next-stepID-list of a new condition with options from js-next-stepID-list
 
     const nextStepCondition = document.createElement('div');
     nextStepCondition.className = 'd-flex gap-2 align-items-center js-next-stepCondition';
@@ -381,7 +486,7 @@ const constructor = {
   },
 
   saveNovelToLocalStorage() {
-    const jsonString = JSON.stringify({ chapters: this.chapters, sideChapters: this.sideChapters }, null, 2);
+    const jsonString = JSON.stringify({ chapters: this.chapters }, null, 2);
     localStorage.setItem('constructedNovel', jsonString);
   }
 };

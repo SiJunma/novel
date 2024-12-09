@@ -49,7 +49,13 @@
 
     <section class="mt-5">
       <div class="container">
-        <h2 class="mt-0 mb-3">Chapter's list</h2>
+        <h2 class="mt-0">Chapter's list</h2>
+
+        <div class="mb-3 mt-3">
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createChapterModal" id="openChapterEditorBtn">Create chapter</button>
+        </div>
+
+        
         <div id="listOfChapters" class="d-flex flex-column gap-3">
           
         </div>
@@ -78,6 +84,8 @@
             <label for="stepText" class="form-label">Step text</label>
             <textarea class="form-control" id="stepText" rows="3"></textarea>
           </div>
+
+          <div id="choicesContainer" class="d-none"></div>
 
           <button class="btn btn-secondary mb-3" type="button" id="addChoiceBtn">Add choice</button>
           <div id="createChoiceForm" class="card bg-light p-3 mb-3 d-none">
@@ -112,7 +120,7 @@
 
             <div class="mt-3">
               <label for="" class="form-label mb-1">Next step</label>
-              <small class="d-block fst-italic text-muted mb-2">Choice will trigger a certain step to get to or you can add conditions with a if-else check.</small>
+              <small class="d-block fst-italic text-muted mb-2">Choice will trigger a certain step to get to, or you can add conditions with a if-else check.</small>
               
               <fieldset id="nextStepContainer" class="fieldset">
                 <div class="form-check">
@@ -138,7 +146,7 @@
 
                 <div class="suboption ps-4 d-none" for="nextStep_condition">
                   <div class="">
-                    <small class="d-block fst-italic text-muted mb-3">Conditions will be checked in the order they are added.</small>
+                    <small class="d-block fst-italic text-muted mb-3">Conditions will be checked in the order they are added. First condition that is met will be used.</small>
 
                     <div id="nextStepConditionsList" class="d-flex flex-column gap-2 mb-3 d-none"></div>
 
@@ -158,39 +166,15 @@
             <hr class="my-3">
 
             <div class="d-flex gap-2">
-              <button id="saveChoiceBtn" class="btn btn-secondary" type="button">Save choice</button>
+              <button id="saveChoiceBtn" class="btn btn-secondary" type="button" disabled>Save choice</button>
               <button id="cancelChoiceBtn" class="btn btn-outline-secondary" type="button">Cancel</button>
             </div>
           </div>
-
-          <div id="choicesContainer" class="d-none"></div>
 
           <div class="mt-3">
             <hr class="my-3">
             <button class="btn btn-primary" id="createStepBtn" type="button" disabled>Create step</button>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="mt-5">
-      <div class="container">
-        <h2 class="mt-0">Chapter constructor</h2>
-        <div id="chapterConstructor">
-          <div class="mb-3">
-            <label for="chapterTitle" class="form-label">Chapter title</label>
-            <input type="text" class="form-control" id="chapterTitle" placeholder="Title">
-          </div>
-
-          <div class="mb-3">
-            <label for="chapterType" class="form-label">As a</label>
-            <select class="form-select" aria-label="Chapter type" id="chapterType">
-              <option value="chapters" selected>Main chapter line</option>
-              <option value="sideChapters">Side chapter line</option>
-            </select>
-          </div>
-
-          <button class="btn btn-primary" id="createChapterBtn" type="button" disabled>Create</button>
         </div>
       </div>
     </section>
@@ -233,17 +217,44 @@
 
               <div class="d-flex align-items-center gap-2 mt-3">
                 <span class="flex-shrink-0">Then GO to</span>
-                <select class="form-select js-next-stepID-list js-conditionStepName" aria-label="Steps list"></select>
+                <select class="form-select js-next-stepID-list" id="nextStepId_conditionReturn" aria-label="Steps list"></select>
               </div>
 
             </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary">Save changes</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="saveNextStepConditionBtn">Save changes</button>
           </div>
         </div>
       </div>
     </div>
+
+
+    <!-- Create/Edit Chapter Modal -->
+    <div class="modal fade" id="createChapterModal" tabindex="-1" aria-labelledby="createChapterModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="createChapterModalLabel">Chapter editor</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="chapterConstructor">
+              <div class="mb-3">
+                <label for="chapterTitle" class="form-label">Chapter title</label>
+                <input type="text" class="form-control" id="chapterTitle" placeholder="Title">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary" id="createChapterBtn" type="button" data-bs-dismiss="modal" disabled>Create</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

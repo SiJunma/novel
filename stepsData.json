@@ -88,34 +88,32 @@
           ]
         }
       ]
-    }
-  ],
-  "sideChapters": [
+    },
     {
-      "id": "sidechapter1",
-      "title": "Side chapter 1",
+      "id": "chapter2",
+      "title": "Chapter 2",
       "steps": [
         {
-          "id": "sidechapter1_step1",
+          "id": "chapter2_step1",
           "name": "First step of side chapter 1",
           "text": "This is the first step of side chapter 1",
           "choices": [
             {
               "text": "Continue",
-              "nextStepId": "sidechapter1_step2",
+              "nextStepId": "chapter2_step2",
               "value": "",
               "stats": { }
             }
           ]
         },
         {
-          "id": "sidechapter1_step2",
+          "id": "chapter2_step2",
           "name": "Second step of side chapter 1",
           "text": "This is the second step of side chapter 1",
           "choices": [
             {
               "text": "Continue",
-              "nextStepId": "sidechapter1_step1",
+              "nextStepId": "chapter2_step1",
               "value": "",
               "stats": { }
             } 
