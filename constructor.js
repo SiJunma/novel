@@ -124,6 +124,8 @@ const constructor = {
     document.getElementById('additionalConditionRules').addEventListener('click', (e) => {
       if (e.target.classList.contains('js-remove-conditionRule')) {
         e.target.closest('.js-condition-rule').remove();
+
+        document.getElementById('saveNextStepConditionBtn').disabled = !constructor.validateConditionForm();
       };
     });
 
@@ -169,22 +171,12 @@ const constructor = {
       });
     });
 
-    document.getElementById('conditionConstructor').addEventListener('click', (e) => {
-      if (e.target.classList.contains('js-conditionStatChoiceOperator')) {
-        if (e.target.value === 'stat') {
-          e.target.closest('.js-condition-rule').querySelector('.js-checkforStatBox').classList.remove('d-none');
-          e.target.closest('.js-condition-rule').querySelector('.js-checkforChoiceBox').classList.add('d-none');
-        } else {
-          e.target.closest('.js-condition-rule').querySelector('.js-checkforStatBox').classList.add('d-none');
-          e.target.closest('.js-condition-rule').querySelector('.js-checkforChoiceBox').classList.remove('d-none');
-        };
-      };
-    });
-
     document.getElementById('addNextConditionRuleBtn').onclick = () => {
       const rulesContainer = document.getElementById('additionalConditionRules');
       rulesContainer.classList.remove('d-none');
       rulesContainer.appendChild(constructor.renderConditionRule(false));
+
+      document.getElementById('saveNextStepConditionBtn').disabled = true;
     };
 
     document.getElementById('saveNextStepConditionBtn').onclick = () => {
@@ -425,6 +417,38 @@ const constructor = {
     };
   },
 
+  validateConditionForm() {
+    const conditionRules = document.getElementById('additionalConditionRules');
+    // check in each js-condition-rule if all inputs are filled
+
+    let isConditionPassed = true;
+
+    conditionRules.querySelectorAll('.js-condition-rule').forEach(rule => {
+      const ifOperator = rule.querySelector('.js-conditionStatChoiceOperator').value;
+      let isRulePassed = true;
+
+      if(ifOperator === 'stat') {
+        const statName = rule.querySelector('.js-conditionStatName').value;
+        const statValue = rule.querySelector('.js-conditionStatValue').value;
+
+        isRulePassed = statName && statValue;
+      } else if(ifOperator === 'choice') {
+        const choiceValue = rule.querySelector('.js-conditionChoiceValue').value;
+
+        isRulePassed = choiceValue !== '';
+      };
+
+      if(!isRulePassed) {
+        isConditionPassed = false;
+      };
+
+      console.log('isRulePassed', isRulePassed);
+    });
+
+    console.log('isConditionPassed', isConditionPassed);
+    return isConditionPassed;
+  },
+
   savingStepToData() {
     const stepTitle = document.getElementById('stepName').value;
     const parentChapter = document.getElementById('parentChapter').value;
@@ -568,7 +592,7 @@ const constructor = {
         <!-- Stat -->
         <div class="d-flex align-items-center gap-2 js-checkforStatBox">
           <span>IS</span>
-          <input type="text" name="statName" class="form-control js-conditionStatName" placeholder="Stat name">
+          <input type="text" name="statName" class="form-control js-conditionStatName js-condition-validation" placeholder="Stat name">
           <select name="statOperator" class="form-select flex-shrink-1 w-25 js-conditionStatOperator">
             <option value="equals">equals</option>
             <option value="notEquals">not equals</option>
@@ -577,7 +601,7 @@ const constructor = {
             <option value="lessOrEquals">less or equals</option>
             <option value="greaterOrEquals">greater or equals</option>
           </select>
-          <input type="number" name="statValue" class="form-control flex-shrink-1 w-25 js-conditionStatValue" placeholder="0">
+          <input type="number" name="statValue" class="form-control flex-shrink-1 w-25 js-conditionStatValue js-condition-validation" placeholder="0">
         </div>
 
         <!-- Choice -->
@@ -589,7 +613,7 @@ const constructor = {
             <option value="equals">equals</option>
             <option value="notEquals">not equals</option>
           </select>
-          <input type="text" name="choiceValue" class="form-control flex-shrink-1 js-conditionChoiceValue" placeholder="intellectual">
+          <input type="text" name="choiceValue" class="form-control flex-shrink-1 js-conditionChoiceValue js-condition-validation" placeholder="intellectual">
         </div>
 
         ${isFirstRule ? '' : `
@@ -610,6 +634,28 @@ const constructor = {
       optionCopy.value = option.value;
       optionCopy.text = option.text;
       conditionStepNameSelect.appendChild(optionCopy);
+    });
+
+    rule.querySelector('.js-conditionStatChoiceOperator').onchange = () => {
+      const thisValue = rule.querySelector('.js-conditionStatChoiceOperator').value;
+      const statBox = rule.querySelector('.js-checkforStatBox');
+      const choiceBox = rule.querySelector('.js-checkforChoiceBox');
+
+      if (thisValue === 'stat') {
+        statBox.classList.remove('d-none');
+        choiceBox.classList.add('d-none');
+      } else {
+        statBox.classList.add('d-none');
+        choiceBox.classList.remove('d-none');
+      };
+
+      document.getElementById('saveNextStepConditionBtn').disabled = !constructor.validateConditionForm();
+    };
+
+    rule.querySelectorAll('.js-condition-validation').forEach(input => {
+      input.oninput = () => {
+        document.getElementById('saveNextStepConditionBtn').disabled = !constructor.validateConditionForm();
+      };
     });
 
     return rule;
@@ -740,7 +786,6 @@ const constructor = {
       </select>
       <button class="btn btn-outline-danger js-remove-condition" type="button">Remove</button>
     `;
-
     return nextStepCondition;
   },
 
