@@ -340,6 +340,36 @@ const constructor = {
         document.getElementById('saveChoiceBtn').disabled = !constructor.validateChoiceForm();
       });
     });
+
+    // Clear Choice form
+    document.getElementById('resetChoiceBtn').onclick = () => {
+      document.getElementById('createChoiceForm').querySelectorAll('.js-choice-validation').forEach(input => {
+        input.value = '';
+      });
+
+      // remove all stats in statsContainer but leave just one
+      document.getElementById('statsContainer').querySelectorAll('.stats-item').forEach(stat => {
+        if (stat !== document.getElementById('statsContainer').querySelector('.stats-item')) {
+          stat.remove();
+        };
+      });
+
+      // check nextStep_id
+      document.getElementById('nextStep_id').checked = true;
+
+      // select first option in nextStepId_direct
+      document.getElementById('nextStepId_direct').value = document.getElementById('nextStepId_direct').querySelector('option').value;
+
+      //clear all nextStepConditionsList and hide it
+      document.getElementById('nextStepConditionsList').innerHTML = '';
+      document.getElementById('nextStepConditionsList').classList.add('d-none');
+
+      //select first option in nextStepId_default
+      document.getElementById('nextStepId_default').value = document.getElementById('nextStepId_default').querySelector('option').value;
+
+      // disable saveChoiceBtn
+      document.getElementById('saveChoiceBtn').disabled = true;
+    };
   },
 
   validateChoiceForm() {
