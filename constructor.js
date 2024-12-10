@@ -408,7 +408,7 @@ const constructor = {
     statsContainer.appendChild(statForm);
 
     // check nextStep_id
-    document.getElementById('nextStep_id').checked = true;
+    document.getElementById('nextStep_id').click();
 
     // select first option in nextStepId_direct
     document.getElementById('nextStepId_direct').value = document.getElementById('nextStepId_direct').querySelector('option').value;
