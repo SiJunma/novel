@@ -87,6 +87,15 @@ const constructor = {
       };
     });
 
+    //resetLocalsorageBtn
+    document.getElementById('resetLocalsorageBtn').onclick = () => {
+      const confirmReset = confirm('Are you sure you want to reset all data?');
+      if(confirmReset) {
+        localStorage.removeItem('constructedNovel');
+        location.reload();
+      };
+    };
+
     document.getElementById('createChapterBtn').onclick = () => {
       const title = document.getElementById('chapterTitle').value;
       const chapterId = document.getElementById('createChapterBtn').getAttribute('data-id');

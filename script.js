@@ -1,4 +1,6 @@
 const app = {
+  originJson: null, 
+  localJson: null,
   chapters: null,
   currentChapter: null,
   currentStep: null,
@@ -7,52 +9,87 @@ const app = {
   progressKey: 'novelProgress',
 
   init() {
+    this.localJson = JSON.parse(localStorage.getItem('constructedNovel')) || null;
+
     fetch('stepsData.json')
       .then(response => response.json())
       .then(data => {
-        this.chapters = data.chapters;
-
-        const stepsSelect = document.getElementById('step-select');
-
-        this.chapters.forEach(chapter => {
-          const parentChapterTitle = chapter.title;
-
-          const steps = chapter.steps;
-          steps.forEach(step => {
-            const option = document.createElement('option');
-            option.value = step.id;
-            option.text = `${parentChapterTitle} - ${step.name}`;
-            stepsSelect.add(option);
-          });
-        });
+        this.originJson = data;
+        const dataUsing = localStorage.getItem('dataUsing');
         
-        stepsSelect.addEventListener('change', () => {
-          const selectedStepId = stepsSelect.value;
-          this.loadStep(selectedStepId);
-          stepsSelect.value = '';
-        });
-
-        const savedProgress = this.loadProgress();
-        if (savedProgress) {
-          this.stats = savedProgress.stats;
-          this.logs = savedProgress.logs;
-          this.currentChapter = this.chapters.find(ch => ch.id === savedProgress.currentChapterId);
-          this.currentStep = this.currentChapter.steps.find(st => st.id === savedProgress.currentStepId) || this.currentChapter.steps.find(st => st.id === savedProgress.currentStepId);
+        if (dataUsing === 'local' && this.localJson) {
+          this.chapters = this.localJson.chapters;
+          document.getElementById('dataUsing').value = 'local';
         } else {
-            this.loadChapter(this.chapters[0].id);
+          this.chapters = this.originJson.chapters;
+          document.getElementById('dataUsing').value = 'origin';
         };
 
-        this.updateUI();
-        this.render();
+        localStorage.setItem('dataUsing', document.getElementById('dataUsing').value);
+
+        app.initNovel();
       })
       .catch(error => console.error("Error loading data:", error));
+
+    // #dataUsing
+    document.getElementById('dataUsing').addEventListener('change', () => {
+      const value = document.getElementById('dataUsing').value;
+      if (value === 'origin') {
+        app.chapters = app.originJson.chapters;
+      } else if (value === 'local' && app.localJson) {
+        app.chapters = app.localJson.chapters;
+      };
+
+      //reset progress
+      localStorage.removeItem(this.progressKey);
+      this.stats = {};
+      this.logs = [];
+      localStorage.setItem('dataUsing', value);
+
+      location.reload();
+    });
+  },
+
+  initNovel() {
+    const stepsSelect = document.getElementById('step-select');
+
+    this.chapters.forEach(chapter => {
+      const parentChapterTitle = chapter.title;
+
+      const steps = chapter.steps;
+      steps.forEach(step => {
+        const option = document.createElement('option');
+        option.value = step.id;
+        option.text = `${parentChapterTitle} - ${step.name}`;
+        stepsSelect.add(option);
+      });
+    });
+    
+    stepsSelect.addEventListener('change', () => {
+      const selectedStepId = stepsSelect.value;
+      this.loadStep(selectedStepId);
+      stepsSelect.value = '';
+    });
+
+    const savedProgress = this.loadProgress();
+    if (savedProgress) {
+      this.stats = savedProgress.stats;
+      this.logs = savedProgress.logs;
+      this.currentChapter = this.chapters.find(ch => ch.id === savedProgress.currentChapterId);
+      this.currentStep = this.currentChapter.steps.find(st => st.id === savedProgress.currentStepId) || this.currentChapter.steps.find(st => st.id === savedProgress.currentStepId);
+    } else {
+      this.loadChapter(this.chapters[0].id);
+    };
+
+    this.updateUI();
+    this.render();
   },
 
   loadChapter(chapterId) {
-      this.currentChapter = this.chapters.find(ch => ch.id === chapterId);
-      this.currentStep = this.currentChapter.steps[0];
-      this.saveProgress();
-      this.render();
+    this.currentChapter = this.chapters.find(ch => ch.id === chapterId);
+    this.currentStep = this.currentChapter.steps[0];
+    this.saveProgress();
+    this.render();
   },
 
   loadStep(stepId) {

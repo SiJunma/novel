@@ -6,13 +6,18 @@ body {
 }
 
 #app {
-  max-width: 768px;
   margin: auto;
   background: #fff;
   border: 1px solid #ddd;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.custom-container {
+  max-width: 768px;
+  margin: 0 auto; /* Центровка */
+  padding: 0 15px; /* Отступы */
 }
 
 h1 {

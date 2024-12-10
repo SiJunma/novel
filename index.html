@@ -39,7 +39,7 @@
 
     <section class="mt-5 mb-5">
       <div class="container">
-        <div id="app">
+        <div class="custom-container" id="app">
           <h1 id="chapter-title" class="mt-0"></h1>
           <h5 id="chapter-subtitle" class="mt-0 mb-2"></h5>
           <p id="step-text"></p>
@@ -64,6 +64,14 @@
             <div id="logs-container"></div>
           </div>
           
+        </div>
+
+        <div class="custom-container mt-3">
+          <label for="dataUsing" class="form-label">Use data from</label>
+          <select class="form-select" aria-label="Data using" id="dataUsing">
+            <option value="origin" selected>Origin JSON file</option>
+            <option value="local">Stored data from the constructor</option>
+          </select>
         </div>
       </div>
     </section>
