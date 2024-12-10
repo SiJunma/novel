@@ -15,6 +15,25 @@ const constructor = {
       .catch(error => console.error("Error loading data:", error));
     };
 
+    const StepModalBtn = document.getElementById('openStepEditorBtn');
+    const StepModal = new bootstrap.Modal(document.getElementById('createStepModal'));
+
+    const ConditionModalBtn = document.getElementById('openConditionModalBtn');
+    const ConditionModal = new bootstrap.Modal(document.getElementById('createConditionModal'));
+
+    StepModalBtn.addEventListener('click', function(e) {
+      StepModal.show();
+    });
+
+    ConditionModalBtn.addEventListener('click', function(e) {
+      document.getElementById('createStepModal').classList.add('d-none');
+      ConditionModal.show();
+    });
+
+    document.getElementById('createConditionModal').addEventListener('hidden.bs.modal', function(e) {
+      document.getElementById('createStepModal').classList.remove('d-none');
+    });
+
     document.getElementById('additionalConditionRules').appendChild(constructor.renderConditionRule(true));
 
     document.getElementById('downloadJsonBtn').onclick = () => {
@@ -97,14 +116,6 @@ const constructor = {
       const choiceForm = document.getElementById('createChoiceForm');
       choiceForm.classList.add('d-none');
       document.getElementById('addChoiceBtn').classList.remove('d-none');
-      document.getElementById('choiceText').value = '';
-      document.getElementById('choiceValue').value = '';
-
-      const statsContainer = document.getElementById('statsContainer');
-      statsContainer.innerHTML = '';
-
-      const statForm = this.createStatForm(0, '', '');
-      statsContainer.appendChild(statForm);
     };
 
     document.getElementById('addStatBtn').onclick = () => {
@@ -192,99 +203,11 @@ const constructor = {
       document.getElementById('saveChoiceBtn').disabled = !constructor.validateChoiceForm();
     };
 
-    //Saving a Choice
     document.getElementById('saveChoiceBtn').onclick = () => {
-      const choiceText = document.getElementById('choiceText').value;
-      const choiceValue = document.getElementById('choiceValue').value;
-
-      const stats = {};
-      const statsContainer = document.getElementById('statsContainer');
-      statsContainer.querySelectorAll('.stats-item').forEach(item => {
-        const statName = item.querySelector('.js-statName').value;
-        const statValue = item.querySelector('.js-statValue').value;
-        stats[statName] = statValue;
-      });
-
-      let nextStepId;
-      let nextStepUI = '';
-
-      if (document.getElementById('nextStep_id').checked) {
-        nextStepId = document.getElementById('nextStepId_direct').value;
-        nextStepUI = constructor.steps.find(step => step.id === nextStepId).name;
-      } else if (document.getElementById('nextStep_condition').checked) {
-        const conditionsList = document.getElementById('nextStepConditionsList');
-        // "() => { if(app.stats.intellectual > 1) { return 'chapter2_step1'; } else if (app.logs.find(obj => obj.stepId === 'chapter1_step1' && obj.value === 'intellectual')) { return 'chapter1_step1'; } else { return 'chapter1_step4'; }; }"
-        nextStepId = '() => {';
-
-        conditionsList.querySelectorAll('.js-UIcondition').forEach((rule, index) => {
-          const data = JSON.parse(rule.getAttribute('data-condition'));
-          const functionString = data.conditionString;
-          if (index === 0) {
-            nextStepId += ` if`;
-          } else {
-            nextStepId += ` else if`;
-          };
-
-          nextStepId += functionString;
-
-          nextStepUI += data.conditionsUIString + '/n'
-        });
-
-        nextStepId += ` else { return '${document.getElementById('nextStepId_default').value}'; }; }`;
-      };
-
-      const choiceObject = {
-        text: choiceText,
-        value: choiceValue,
-        nextStepId: nextStepId,
-        stats: stats
-      };
-
-      const choicesContainer = document.getElementById('choicesContainer');
-      const choiceElement = document.createElement('div');
-      choiceElement.className = 'd-flex justify-content-between align-items-start bg-body-tertiary card flex-row p-3 js-choiceItem';
-      choiceElement.setAttribute('data-choice', JSON.stringify(choiceObject));
-      let statsText = '';
-      for (let stat in stats) {
-        statsText += `${stat}: ${stats[stat]}`;
-        if (Object.keys(stats).indexOf(stat) !== Object.keys(stats).length - 1) {
-          statsText += ', ';
-        } else {
-          statsText += '.';
-        };
-      };
-
-      choiceElement.innerHTML = `
-        <div class="">
-          <b>Text of a choice:</b>
-          <div class="mb-2">${choiceText}</div>
-
-          <div class="mb-2"><b>Value of a choice:</b> <span>${choiceValue}</span></div>
-
-          <div class="mb-2"><b>Stats:</b> <span>${statsText}</span></div>
-
-          <div>
-            <b>Next step:</b> 
-            <span>${nextStepUI.replaceAll('/n', '<br>')}</span>
-          </div>
-        </div>
-
-        <div class="d-flex gap-2">
-          <button class="btn btn-outline-primary btn-sm js-edit-renderedChoice" type="button" data-bs-toggle="modal" data-bs-target="#createChoiceModal">Edit</button>
-          <button class="btn btn-outline-danger btn-sm js-remove-renderedChoice" type="button">Remove</button>
-        </div>
-      `;
-
-      choicesContainer.appendChild(choiceElement);
-      choicesContainer.classList.remove('d-none');
-
-      document.getElementById('createChoiceForm').classList.add('d-none');
-      document.getElementById('addChoiceBtn').classList.remove('d-none');
-
-      document.getElementById('createStepBtn').disabled = !constructor.validateStepForm();
+      constructor.saveChoiceToStep();
+      constructor.clearChoiceForm();
     };
 
-    //Saving a Step
     document.getElementById('createStepBtn').onclick = () => {
       constructor.savingStepToData();
     };
@@ -335,33 +258,99 @@ const constructor = {
 
     // Clear Choice form
     document.getElementById('resetChoiceBtn').onclick = () => {
-      document.getElementById('createChoiceForm').querySelectorAll('.js-choice-validation').forEach(input => {
-        input.value = '';
-      });
-
-      // remove all stats in statsContainer but leave just one
-      document.getElementById('statsContainer').querySelectorAll('.stats-item').forEach(stat => {
-        if (stat !== document.getElementById('statsContainer').querySelector('.stats-item')) {
-          stat.remove();
-        };
-      });
-
-      // check nextStep_id
-      document.getElementById('nextStep_id').checked = true;
-
-      // select first option in nextStepId_direct
-      document.getElementById('nextStepId_direct').value = document.getElementById('nextStepId_direct').querySelector('option').value;
-
-      //clear all nextStepConditionsList and hide it
-      document.getElementById('nextStepConditionsList').innerHTML = '';
-      document.getElementById('nextStepConditionsList').classList.add('d-none');
-
-      //select first option in nextStepId_default
-      document.getElementById('nextStepId_default').value = document.getElementById('nextStepId_default').querySelector('option').value;
-
-      // disable saveChoiceBtn
-      document.getElementById('saveChoiceBtn').disabled = true;
+      constructor.clearChoiceForm();
     };
+  },
+
+  saveChoiceToStep() {
+    const choiceText = document.getElementById('choiceText').value;
+    const choiceValue = document.getElementById('choiceValue').value;
+
+    const stats = {};
+    const statsContainer = document.getElementById('statsContainer');
+    statsContainer.querySelectorAll('.stats-item').forEach(item => {
+      const statName = item.querySelector('.js-statName').value;
+      const statValue = item.querySelector('.js-statValue').value;
+      stats[statName] = statValue;
+    });
+
+    let nextStepId;
+    let nextStepUI = '';
+
+    if (document.getElementById('nextStep_id').checked) {
+      nextStepId = document.getElementById('nextStepId_direct').value;
+      nextStepUI = constructor.steps.find(step => step.id === nextStepId).name;
+    } else if (document.getElementById('nextStep_condition').checked) {
+      const conditionsList = document.getElementById('nextStepConditionsList');
+      // "() => { if(app.stats.intellectual > 1) { return 'chapter2_step1'; } else if (app.logs.find(obj => obj.stepId === 'chapter1_step1' && obj.value === 'intellectual')) { return 'chapter1_step1'; } else { return 'chapter1_step4'; }; }"
+      nextStepId = '() => {';
+
+      conditionsList.querySelectorAll('.js-UIcondition').forEach((rule, index) => {
+        const data = JSON.parse(rule.getAttribute('data-condition'));
+        const functionString = data.conditionString;
+        if (index === 0) {
+          nextStepId += ` if`;
+        } else {
+          nextStepId += ` else if`;
+        };
+
+        nextStepId += functionString;
+
+        nextStepUI += data.conditionsUIString + '/n'
+      });
+
+      nextStepId += ` else { return '${document.getElementById('nextStepId_default').value}'; }; }`;
+    };
+
+    const choiceObject = {
+      text: choiceText,
+      value: choiceValue,
+      nextStepId: nextStepId,
+      stats: stats
+    };
+
+    const choicesContainer = document.getElementById('choicesContainer');
+    const choiceElement = document.createElement('div');
+    choiceElement.className = 'd-flex justify-content-between align-items-start bg-body-tertiary card flex-row p-3 js-choiceItem';
+    choiceElement.setAttribute('data-choice', JSON.stringify(choiceObject));
+    let statsText = '';
+    for (let stat in stats) {
+      statsText += `${stat}: ${stats[stat]}`;
+      if (Object.keys(stats).indexOf(stat) !== Object.keys(stats).length - 1) {
+        statsText += ', ';
+      } else {
+        statsText += '.';
+      };
+    };
+
+    choiceElement.innerHTML = `
+      <div class="">
+        <b>Text of a choice:</b>
+        <div class="mb-2">${choiceText}</div>
+
+        <div class="mb-2"><b>Value of a choice:</b> <span>${choiceValue}</span></div>
+
+        <div class="mb-2"><b>Stats:</b> <span>${statsText}</span></div>
+
+        <div>
+          <b>Next step:</b> 
+          <span>${nextStepUI.replaceAll('/n', '<br>')}</span>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary btn-sm js-edit-renderedChoice" type="button" data-bs-toggle="modal" data-bs-target="#createChoiceModal">Edit</button>
+        <button class="btn btn-outline-danger btn-sm js-remove-renderedChoice" type="button">Remove</button>
+      </div>
+    `;
+
+    choicesContainer.appendChild(choiceElement);
+    choicesContainer.classList.remove('d-none');
+
+    document.getElementById('createChoiceForm').classList.add('d-none');
+    document.getElementById('addChoiceBtn').classList.remove('d-none');
+
+    document.getElementById('createStepBtn').disabled = !constructor.validateStepForm();
   },
 
   validateChoiceForm() {
@@ -395,6 +384,35 @@ const constructor = {
     };
 
     return choiceText && choiceValue && statsPassed && statsValuePassed && isConditionPassed;
+  },
+
+  clearChoiceForm() {
+    document.getElementById('createChoiceForm').querySelectorAll('.js-choice-validation').forEach(input => {
+      input.value = '';
+    });
+
+    // remove all stats in statsContainer but leave just one
+    const statsContainer = document.getElementById('statsContainer');
+    statsContainer.innerHTML = '';
+
+    const statForm = this.createStatForm(0, '', '');
+    statsContainer.appendChild(statForm);
+
+    // check nextStep_id
+    document.getElementById('nextStep_id').checked = true;
+
+    // select first option in nextStepId_direct
+    document.getElementById('nextStepId_direct').value = document.getElementById('nextStepId_direct').querySelector('option').value;
+
+    //clear all nextStepConditionsList and hide it
+    document.getElementById('nextStepConditionsList').innerHTML = '';
+    document.getElementById('nextStepConditionsList').classList.add('d-none');
+
+    //select first option in nextStepId_default
+    document.getElementById('nextStepId_default').value = document.getElementById('nextStepId_default').querySelector('option').value;
+
+    // disable saveChoiceBtn
+    document.getElementById('saveChoiceBtn').disabled = true;
   },
 
   deleteStepFromData(stepId){
@@ -441,11 +459,7 @@ const constructor = {
       if(!isRulePassed) {
         isConditionPassed = false;
       };
-
-      console.log('isRulePassed', isRulePassed);
     });
-
-    console.log('isConditionPassed', isConditionPassed);
     return isConditionPassed;
   },
 
@@ -469,6 +483,15 @@ const constructor = {
     });
 
     constructor.saveNovelToLocalStorage();
+
+    // reset step form
+    document.getElementById('stepName').value = '';
+    document.getElementById('stepText').value = '';
+    document.getElementById('choicesContainer').innerHTML = '';
+    document.getElementById('parentChapter').value = document.getElementById('parentChapter').querySelector('option').value;
+
+    document.getElementById('choicesContainer').innerHTML = ``;
+    document.getElementById('choicesContainer').classList.add('d-none');
   },
 
   proceedNovelJSON(data) {
@@ -553,7 +576,7 @@ const constructor = {
 
           const controls = `
             <div class="d-flex opacity-btns">
-              <button class="btn btn-sm js-edit-listed-Step" type="button" data-bs-toggle="modal" data-bs-target="#createStepModal"><img src="edit-text.png" alt="Edit" width="18" height="18"></button>
+              <button class="btn btn-sm js-edit-listed-Step border-0 opacity-25" disabled type="button" data-bs-toggle="modal" data-bs-target="#createStepModal"><img src="edit-text.png" alt="Edit" width="18" height="18"></button>
               <button class="btn btn-sm js-remove-listed-step" type="button"><img src="trash.png" alt="Remove" width="18" height="18"></button>
             </div>
           `;
@@ -735,7 +758,7 @@ const constructor = {
 
     UIElement.insertAdjacentHTML('beforeend', `
       <div class="d-flex gap-2">
-        <button class="btn btn-outline-primary btn-sm js-edit-UIcondition" type="button" data-bs-toggle="modal" data-bs-target="#createConditionModal">Edit</button>
+        <button class="btn btn-outline-primary btn-sm js-edit-UIcondition opacity-25" disabled type="button" data-bs-toggle="modal" data-bs-target="#createConditionModal">Edit</button>
         <button class="btn btn-outline-danger btn-sm js-remove-UIcondition" type="button">Remove</button>
       </div>
     `);
@@ -747,10 +770,10 @@ const constructor = {
 
   createStatForm(index, stat, value) {
     const statItem = document.createElement('div');
-    statItem.className = 'd-flex gap-2 stats-item';
+    statItem.className = 'd-flex gap-2 flex-wrap flex-md-nowrap p-2 bg-primary-subtle stats-item';
     statItem.innerHTML = `
       <input type="text" class="form-control js-statName js-choice-validation" id="statItem_${index}" placeholder="Stat name" value="${stat}">
-      <input type="number" class="form-control w-25 js-statValue js-choice-validation" id="statValue_${index}" placeholder="Stat value" value="${value}">
+      <input type="number" class="form-control w-auto js-statValue js-choice-validation" id="statValue_${index}" placeholder="Stat value" value="${value}">
       <button class="btn btn-outline-danger js-remove-stat" type="button">Remove</button>
     `;
 

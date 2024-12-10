@@ -37,156 +37,41 @@
       </div>
     </header>
     
-    
-    <section class="mt-5">
-      <div class="container">
-         <div class="alert alert-info" role="alert">
-          <h4 class="alert-heading">Under development</h4>
-          <p class="mb-0">This page is under development.</p>
+    <main>
+      <section class="mt-5">
+        <div class="container">
+          <div class="alert alert-info" role="alert">
+            <h4 class="alert-heading">Under development</h4>
+            <p class="mb-0">This page is under development.</p>
+          </div>
         </div>
-      </div>
-    </section> 
+      </section> 
 
-    <section class="mt-5">
-      <div class="container">
-        <h2 class="mt-0">Chapter's list</h2>
+      <section class="mt-5">
+        <div class="container">
+          <h2 class="mt-0">Chapter's list</h2>
 
-        <div class="mb-3 mt-3">
-          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createChapterModal" id="openChapterEditorBtn">Create chapter</button>
-        </div>
+          <div class="d-fle align-items-center gap-2 mb-3 mt-3">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createChapterModal" id="openChapterEditorBtn">Create chapter</button>
+            <button type="button" class="btn btn-primary" id="openStepEditorBtn">Create Step</button>
+          </div>
 
-        
-        <div id="listOfChapters" class="d-flex flex-column gap-3">
           
-        </div>
-      </div>
-    </section>
-
-    <section class="mt-5">
-      <div class="container">
-        <h2 class="mt-0">Step constructor</h2>
-
-        <div id="stepConstructor">
-          <div class="mb-3">
-            <label for="parentChapter" class="form-label">Belongs to chapter</label>
-            <select class="form-select js-chaptersID-List" aria-label="Chapter" id="parentChapter">
-              <option value="id" selected>The Beginning</option>
-              <option value="id">The End</option>
-            </select>
-          </div>
-
-          <div class="mb-3">
-            <label for="stepName" class="form-label">Step title</label>
-            <input type="text" class="form-control js-step-validation" id="stepName" placeholder="Title">
-          </div>
-
-          <div class="mb-3">
-            <label for="stepText" class="form-label">Step text</label>
-            <textarea class="form-control js-step-validation" id="stepText" rows="3"></textarea>
-          </div>
-
-          <div id="choicesContainer" class="d-flex gap-2 flex-column mb-3 d-none"></div>
-
-          <button class="btn btn-secondary mb-3" type="button" id="addChoiceBtn">Add choice</button>
-          <div id="createChoiceForm" class="card bg-light p-3 mb-3 d-none">
-            <h5 class="mb-2">Create choice</h5>
-
-            <div class="mb-3">
-              <label for="choiceText" class="form-label">Choice text</label>
-              <input type="text" class="form-control js-choice-validation" id="choiceText" placeholder="Choice text">
-              <small class="fst-italic text-muted">The text that user will see on a choice button.</small>
-            </div>
-
-            <div class="mb-3">
-              <label for="choiceValue" class="form-label">Choice value</label>
-              <input type="text" class="form-control js-choice-validation" id="choiceValue" placeholder="Choice value">
-              <small class="fst-italic text-muted">The value that can be used as condition for a choice to get to a certain step. For example, "emotion" or "luck".</small>
-            </div>
-
-            <div class="">
-              <label for="choiceText" class="form-label mb-1">Stats</label>
-              <small class="d-block fst-italic text-muted mb-2">Stas will be gathered to the Statistics section as a parameter-value. For example "intellectual" - "1" or "instinctual" - "2". Choice can be without stats. Stats can't have the same name.</small>
-
-              <div id="statsContainer" class="d-flex flex-column gap-2">
-                <div class="d-flex gap-2 stats-item">
-                  <input type="text" class="form-control js-statName js-choice-validation" id="statItem_0" placeholder="Stat name">
-                  <input type="number" class="form-control w-25 js-statValue js-choice-validation" id="statValue_0" placeholder="Stat value">
-                  <button class="btn btn-outline-danger js-remove-stat" type="button">Remove</button>
-                </div>
-              </div>
-
-              <button class="btn btn-outline-success btn-sm mt-2" type="button" id="addStatBtn">Add stat</button>
-            </div>
-
-            <div class="mt-3">
-              <label for="" class="form-label mb-1">Next step</label>
-              <small class="d-block fst-italic text-muted mb-2">Choice will trigger a certain step to get to, or you can add conditions with a if-else check.</small>
-              
-              <fieldset id="nextStepContainer" class="fieldset">
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="nextStep" id="nextStep_id" checked>
-                  <label class="form-check-label" for="nextStep_id">
-                    Define the next step itself.
-                  </label>
-                </div>
-
-                <div class="suboption ps-4" for="nextStep_id">
-                  <div class="mb-3">
-                    <label for="nextStepId_direct" class="form-label">Select step from a list</label>
-                    <select class="form-select js-next-stepID-list" aria-label="Steps list" id="nextStepId_direct"></select>
-                  </div>
-                </div>
-
-                <div class="form-check mt-3">
-                  <input class="form-check-input" type="radio" name="nextStep" id="nextStep_condition">
-                  <label class="form-check-label" for="nextStep_condition">
-                    Define the next step by checking a condition.
-                  </label>
-                </div>
-
-                <div class="suboption ps-4 d-none" for="nextStep_condition">
-                  <div class="">
-                    <small class="d-block fst-italic text-muted mb-3">Conditions will be checked in the order they are added. First condition that is met will be used.</small>
-
-                    <div id="nextStepConditionsList" class="d-flex flex-column gap-2 mb-3 d-none"></div>
-
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createConditionModal">
-                      Add condition using condition constructor
-                    </button>
-
-                    <div class="mt-3">
-                      <label for="nextStepId_default" class="form-label">If no condition is met go to</label>
-                      <select class="form-select js-next-stepID-list" aria-label="Steps list" id="nextStepId_default"></select>
-                    </div>
-                  </div>
-                </div>
-              </fieldset>
-            </div>
-
-            <hr class="my-3">
-
-            <div class="d-flex gap-2">
-              <button id="saveChoiceBtn" class="btn btn-secondary" type="button" disabled>Save choice</button>
-              <button id="cancelChoiceBtn" class="btn btn-outline-secondary" type="button">Cancel</button>
-              <button id="resetChoiceBtn" class="btn btn-outline-danger ms-auto" type="button">Clear form</button>
-            </div>
-          </div>
-
-          <div class="mt-3">
-            <hr class="my-3">
-            <button class="btn btn-primary" id="createStepBtn" type="button" disabled>Create step</button>
+          <div id="listOfChapters" class="d-flex flex-column gap-3">
+            
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section id="downloadSection" class="mt-5">
-      <div class="container">
-        <div class="text-center">
-          <a id="downloadJsonBtn" class="btn btn-primary" download="stepsData.json">Download constructed JSON file of your Novel</a>
+      <section id="downloadSection" class="mt-5">
+        <div class="container">
+          <div class="text-center">
+            <a id="downloadJsonBtn" class="btn btn-primary" download="stepsData.json">Download constructed JSON file of your Novel</a>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+    </main>
 
     <footer class="footer bg-black bg-opacity-75 mt-5">
       <div class="container">
@@ -196,39 +81,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="constructor.js"></script>
-
-    <!-- Create a choice condition Modal -->
-    <div class="modal fade" id="createConditionModal" tabindex="-1" aria-labelledby="createConditionModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h1 class="modal-title fs-5" id="createConditionModalLabel">Condition constructor</h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div id="conditionConstructor">
-              
-              <div class="d-flex flex-column gap-3" id="additionalConditionRules"></div>
-
-              <div class="mt-3">
-                  <button type="button" class="btn btn-outline-success btn-sm" id="addNextConditionRuleBtn">Add rule</button>
-              </div>
-
-              <div class="d-flex align-items-center gap-2 mt-3">
-                <span class="flex-shrink-0">Then GO to</span>
-                <select class="form-select js-next-stepID-list" id="nextStepId_conditionReturn" aria-label="Steps list"></select>
-              </div>
-
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="saveNextStepConditionBtn" disabled>Add condition</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
 
     <!-- Create/Edit Chapter Modal -->
     <div class="modal fade" id="createChapterModal" tabindex="-1" aria-labelledby="createChapterModalLabel" aria-hidden="true">
@@ -249,6 +101,157 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             <button class="btn btn-primary" id="createChapterBtn" type="button" data-bs-dismiss="modal" disabled>Create</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create/Edit Step Modal -->
+    <div class="modal fade" id="createStepModal" tabindex="-1" aria-labelledby="createStepModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="createStepModalLabel">Step editor</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="stepConstructor">
+              <div class="mb-3">
+                <label for="parentChapter" class="form-label">Belongs to chapter</label>
+                <select class="form-select js-chaptersID-List" aria-label="Chapter" id="parentChapter">
+                  <option value="id" selected>The Beginning</option>
+                  <option value="id">The End</option>
+                </select>
+              </div>
+    
+              <div class="mb-3">
+                <label for="stepName" class="form-label">Step title</label>
+                <input type="text" class="form-control js-step-validation" id="stepName" placeholder="Title">
+              </div>
+    
+              <div class="mb-3">
+                <label for="stepText" class="form-label">Step text</label>
+                <textarea class="form-control js-step-validation" id="stepText" rows="3"></textarea>
+              </div>
+    
+              <div id="choicesContainer" class="d-flex gap-2 flex-column mb-3 d-none"></div>
+    
+              <button class="btn btn-secondary mb-3" type="button" id="addChoiceBtn">Add choice</button>
+              <div id="createChoiceForm" class="card bg-light p-3 mb-3 d-none">
+                <h5 class="mb-2">Create choice</h5>
+    
+                <div class="mb-3">
+                  <label for="choiceText" class="form-label">Choice text</label>
+                  <input type="text" class="form-control js-choice-validation" id="choiceText" placeholder="Choice text">
+                  <small class="fst-italic text-muted">The text that user will see on a choice button.</small>
+                </div>
+    
+                <div class="mb-3">
+                  <label for="choiceValue" class="form-label">Choice value</label>
+                  <input type="text" class="form-control js-choice-validation" id="choiceValue" placeholder="Choice value">
+                  <small class="fst-italic text-muted">The value that can be used as condition for a choice to get to a certain step. For example, "emotion" or "luck".</small>
+                </div>
+    
+                <div class="">
+                  <label for="choiceText" class="form-label mb-1">Stats</label>
+                  <small class="d-block fst-italic text-muted mb-2">Stas will be gathered to the Statistics section as a parameter-value. For example "intellectual" - "1" or "instinctual" - "2". Choice can be without stats. Stats can't have the same name.</small>
+    
+                  <div id="statsContainer" class="d-flex flex-column gap-2">
+                  </div>
+    
+                  <button class="btn btn-outline-success btn-sm mt-2" type="button" id="addStatBtn">Add stat</button>
+                </div>
+    
+                <div class="mt-3">
+                  <label for="" class="form-label mb-1">Next step</label>
+                  <small class="d-block fst-italic text-muted mb-2">Choice will trigger a certain step to get to, or you can add conditions with a if-else check.</small>
+                  
+                  <fieldset id="nextStepContainer" class="fieldset">
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="nextStep" id="nextStep_id" checked>
+                      <label class="form-check-label" for="nextStep_id">
+                        Define the next step itself.
+                      </label>
+                    </div>
+    
+                    <div class="suboption ps-4" for="nextStep_id">
+                      <div class="mb-3">
+                        <label for="nextStepId_direct" class="form-label">Select step from a list</label>
+                        <select class="form-select js-next-stepID-list" aria-label="Steps list" id="nextStepId_direct"></select>
+                      </div>
+                    </div>
+    
+                    <div class="form-check mt-3">
+                      <input class="form-check-input" type="radio" name="nextStep" id="nextStep_condition">
+                      <label class="form-check-label" for="nextStep_condition">
+                        Define the next step by checking a condition.
+                      </label>
+                    </div>
+    
+                    <div class="suboption ps-4 d-none" for="nextStep_condition">
+                      <div class="">
+                        <small class="d-block fst-italic text-muted mb-3">Conditions will be checked in the order they are added. First condition that is met will be used.</small>
+    
+                        <div id="nextStepConditionsList" class="d-flex flex-column gap-2 mb-3 d-none"></div>
+    
+                        <button type="button" class="btn btn-primary" id="openConditionModalBtn">
+                          Add condition using condition constructor
+                        </button>
+    
+                        <div class="mt-3">
+                          <label for="nextStepId_default" class="form-label">If no condition is met go to</label>
+                          <select class="form-select js-next-stepID-list" aria-label="Steps list" id="nextStepId_default"></select>
+                        </div>
+                      </div>
+                    </div>
+                  </fieldset>
+                </div>
+    
+                <hr class="my-3">
+    
+                <div class="d-flex gap-2 flex-column flex-sm-row">
+                  <button id="saveChoiceBtn" class="btn btn-secondary" type="button" disabled>Save choice</button>
+                  <button id="cancelChoiceBtn" class="btn btn-outline-secondary" type="button">Cancel</button>
+                  <button id="resetChoiceBtn" class="btn btn-outline-danger ms-sm-auto" type="button">Clear form</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary" id="createStepBtn" type="button" data-bs-dismiss="modal" disabled>Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create a choice condition Modal -->
+    <div class="modal fade" id="createConditionModal" tabindex="-1" aria-labelledby="createConditionModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="createConditionModalLabel">Condition constructor</h1>
+            <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
+          </div>
+          <div class="modal-body">
+            <div id="conditionConstructor">
+              
+              <div class="d-flex flex-column gap-3" id="additionalConditionRules"></div>
+
+              <div class="mt-3">
+                  <button type="button" class="btn btn-outline-success btn-sm" id="addNextConditionRuleBtn">Add rule</button>
+              </div>
+
+              <div class="d-flex align-items-center gap-2 mt-3">
+                <span class="flex-shrink-0">Then GO to</span>
+                <select class="form-select js-next-stepID-list" id="nextStepId_conditionReturn" aria-label="Steps list"></select>
+              </div>
+
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Back to step editor</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="saveNextStepConditionBtn" disabled>Add condition</button>
           </div>
         </div>
       </div>
