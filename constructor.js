@@ -62,6 +62,7 @@ const constructor = {
 
           if(conditionsList.querySelectorAll('.js-UIcondition').length === 0) {
             conditionsList.classList.add('d-none');
+            document.getElementById('saveChoiceBtn').disabled = true;
           };
         };
       };
@@ -110,11 +111,13 @@ const constructor = {
       const statsContainer = document.getElementById('statsContainer');
       const index = statsContainer.children.length;
       statsContainer.appendChild(this.createStatForm(index, '', ''));
+      document.getElementById('saveChoiceBtn').disabled = true;
     };
 
     document.getElementById('statsContainer').addEventListener('click', (e) => {
       if (e.target.classList.contains('js-remove-stat')) {
         e.target.closest('.stats-item').remove();
+        document.getElementById('saveChoiceBtn').disabled = !constructor.validateChoiceForm();
       };
     });
 
@@ -162,6 +165,7 @@ const constructor = {
           suboption.classList.add('d-none');
         });
         document.querySelector(`.suboption[for="${input.id}"]`).classList.remove('d-none');
+        document.getElementById('saveChoiceBtn').disabled = !constructor.validateChoiceForm();;
       });
     });
 
@@ -192,6 +196,8 @@ const constructor = {
       rulesContainer.innerHTML = '';
       rulesContainer.appendChild(constructor.renderConditionRule(true));
       document.getElementById('nextStepId_conditionReturn').value = constructor.steps[0].id;
+
+      document.getElementById('saveChoiceBtn').disabled = !constructor.validateChoiceForm();
     };
 
     //Saving a Choice
@@ -272,7 +278,7 @@ const constructor = {
         </div>
 
         <div class="d-flex gap-2">
-          <button class="btn btn-outline-primary btn-sm js-edit-renderedChoice" type="button" data-bs-toggle="modal" data-bs-target="#createChapterModal">Edit</button>
+          <button class="btn btn-outline-primary btn-sm js-edit-renderedChoice" type="button" data-bs-toggle="modal" data-bs-target="#createChoiceModal">Edit</button>
           <button class="btn btn-outline-danger btn-sm js-remove-renderedChoice" type="button">Remove</button>
         </div>
       `;
@@ -327,6 +333,46 @@ const constructor = {
         };
       };
     });
+
+    // .js-choice-validation of #createChoiceForm
+    document.querySelectorAll('.js-choice-validation').forEach(input => {
+      input.addEventListener('input', () => {
+        document.getElementById('saveChoiceBtn').disabled = !constructor.validateChoiceForm();
+      });
+    });
+  },
+
+  validateChoiceForm() {
+    const choiceText = document.getElementById('choiceText').value;
+    const choiceValue = document.getElementById('choiceValue').value;
+
+    let statsPassed = true;
+    // #statsContainer .js-statName
+    document.querySelectorAll('#statsContainer .js-statName').forEach(input => {
+      if (!input.value) {
+        statsPassed = false;
+      };
+    });
+
+    let statsValuePassed = true;
+    // #statsContainer .js-statValue
+    document.querySelectorAll('#statsContainer .js-statValue').forEach(input => {
+      if (!input.value) {
+        statsValuePassed = false;
+      };
+    });
+
+    const nextStep_condition = document.getElementById('nextStep_condition').checked;
+    const conditionList = document.getElementById('nextStepConditionsList');
+    let isConditionPassed = false;
+
+    if(nextStep_condition) {
+      isConditionPassed = conditionList.querySelectorAll('.js-UIcondition').length
+    } else {
+      isConditionPassed = true
+    };
+
+    return choiceText && choiceValue && statsPassed && statsValuePassed && isConditionPassed;
   },
 
   deleteStepFromData(stepId){
@@ -627,10 +673,16 @@ const constructor = {
     const statItem = document.createElement('div');
     statItem.className = 'd-flex gap-2 stats-item';
     statItem.innerHTML = `
-      <input type="text" class="form-control js-statName" id="statItem_${index}" placeholder="Stat name" value="${stat}">
-      <input type="number" class="form-control w-25 js-statValue" id="statValue_${index}" placeholder="Stat value" value="${value}">
+      <input type="text" class="form-control js-statName js-choice-validation" id="statItem_${index}" placeholder="Stat name" value="${stat}">
+      <input type="number" class="form-control w-25 js-statValue js-choice-validation" id="statValue_${index}" placeholder="Stat value" value="${value}">
       <button class="btn btn-outline-danger js-remove-stat" type="button">Remove</button>
     `;
+
+    statItem.querySelectorAll('.js-choice-validation').forEach(input => {
+      input.addEventListener('input', () => {
+        document.getElementById('saveChoiceBtn').disabled = !constructor.validateChoiceForm();
+      });
+    });
     
     return statItem;
   },

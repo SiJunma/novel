@@ -93,13 +93,13 @@
 
             <div class="mb-3">
               <label for="choiceText" class="form-label">Choice text</label>
-              <input type="text" class="form-control" id="choiceText" placeholder="Choice text">
+              <input type="text" class="form-control js-choice-validation" id="choiceText" placeholder="Choice text">
               <small class="fst-italic text-muted">The text that user will see on a choice button.</small>
             </div>
 
             <div class="mb-3">
               <label for="choiceValue" class="form-label">Choice value</label>
-              <input type="text" class="form-control" id="choiceValue" placeholder="Choice value">
+              <input type="text" class="form-control js-choice-validation" id="choiceValue" placeholder="Choice value">
               <small class="fst-italic text-muted">The value that can be used as condition for a choice to get to a certain step. For example, "emotion" or "luck".</small>
             </div>
 
@@ -109,8 +109,8 @@
 
               <div id="statsContainer" class="d-flex flex-column gap-2">
                 <div class="d-flex gap-2 stats-item">
-                  <input type="text" class="form-control js-statName" id="statItem_0" placeholder="Stat name">
-                  <input type="number" class="form-control w-25 js-statValue" id="statValue_0" placeholder="Stat value">
+                  <input type="text" class="form-control js-statName js-choice-validation" id="statItem_0" placeholder="Stat name">
+                  <input type="number" class="form-control w-25 js-statValue js-choice-validation" id="statValue_0" placeholder="Stat value">
                   <button class="btn btn-outline-danger js-remove-stat" type="button">Remove</button>
                 </div>
               </div>
@@ -166,7 +166,7 @@
             <hr class="my-3">
 
             <div class="d-flex gap-2">
-              <button id="saveChoiceBtn" class="btn btn-secondary" type="button">Save choice</button>
+              <button id="saveChoiceBtn" class="btn btn-secondary" type="button" disabled>Save choice</button>
               <button id="cancelChoiceBtn" class="btn btn-outline-secondary" type="button">Cancel</button>
             </div>
           </div>
