@@ -606,7 +606,7 @@ const constructor = {
 
         <div>
           <span class="fw-semibold">Next Step: </span>
-          <span>${choice.nextStepId ? constructor.steps.find(step => step.id === choice.nextStepId)?.name || renderNextStepIdFunc(choice.nextStepId).replaceAll('/n', '<br />') : '-'}</span>
+          <span>${choice.nextStepId ? constructor.steps.find(step => step.id === choice.nextStepId)?.name || renderNextStepIdFunc(choice.nextStepId).replaceAll('/n', '<br />').replaceAll('N/A', '<span class="text-danger">N/A</span>') : '-'}</span>
         </div>
 
         <div>
@@ -617,7 +617,7 @@ const constructor = {
 
       function renderNextStepIdFunc(nextStepId) {
         function getStepName(stepId) {
-          console.log(stepId);
+          // console.log(stepId);
           return constructor.steps.find(step => step.id === stepId)?.name || 'N/A';
         };
 
