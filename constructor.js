@@ -471,7 +471,6 @@ const constructor = {
     });
     return isConditionPassed;
   },
-
   savingStepToData() {
     const stepTitle = document.getElementById('stepName').value;
     const parentChapter = document.getElementById('parentChapter').value;
@@ -502,7 +501,6 @@ const constructor = {
     document.getElementById('choicesContainer').innerHTML = ``;
     document.getElementById('choicesContainer').classList.add('d-none');
   },
-
   proceedNovelJSON(data) {
     constructor.chapters = data.chapters;
     constructor.steps = [...constructor.chapters.flatMap(ch => ch.steps)];
@@ -565,8 +563,6 @@ const constructor = {
       chaptersContainer.appendChild(chapterBox);
       const parentChapterTitle = chapter.title;
       chapterBox.appendChild(this.createChapterElement(index, parentChapterTitle, chapter.id));
-
-      
       
       const steps = chapter.steps;
       if (steps.length) {
@@ -576,26 +572,126 @@ const constructor = {
         
         steps.forEach(step => {
           const option = document.createElement('li');
-          option.className = 'list-group-item m-0 d-flex justify-content-between align-items-start';
+          option.className = 'list-group-item m-0 d-flex flex-column flex-sm-row justify-content-between align-items-start ps-0';
           option.setAttribute('data-id', step.id);
 
-          const span = document.createElement('span');
-          span.textContent = step.name ? step.name : 'N/A';
-          option.appendChild(span);
-
-          const controls = `
-            <div class="d-flex opacity-btns">
-              <button class="btn btn-sm js-edit-listed-Step border-0 opacity-25" disabled type="button" data-bs-toggle="modal" data-bs-target="#createStepModal"><img src="edit-text.png" alt="Edit" width="18" height="18"></button>
-              <button class="btn btn-sm js-remove-listed-step" type="button"><img src="trash.png" alt="Remove" width="18" height="18"></button>
-            </div>
-          `;
-
-          option.innerHTML += controls;
+          constructor.renderStepElement(option, step);
+          
           list.appendChild(option);
           chapterBox.appendChild(list);
         });
       };
     });
+  },
+
+  renderStepElement(li, step) {
+    console.log(step);
+    const accordion = document.createElement('div');
+    accordion.className = 'accordion accordion-flush flex-grow-1';
+
+    let choicesHtml = '';
+    step.choices.forEach(choice => {
+      //text, value stats({key:value}), nextStepId
+
+      choicesHtml += `<div class="bg-body-secondary p-2">
+        <div>
+          <span class="fw-semibold">Text: </span>
+          <span>${choice.text ? choice.text : 'N/A'}</span>
+        </div>
+
+        <div>
+          <span class="fw-semibold">Value: </span>
+          <span>${choice.value ? choice.value : '-'}</span>
+        </div>
+
+        <div>
+          <span class="fw-semibold">Next Step: </span>
+          <span>${choice.nextStepId ? constructor.steps.find(step => step.id === choice.nextStepId)?.name || renderNextStepIdFunc(choice.nextStepId).replaceAll('/n', '<br />') : '-'}</span>
+        </div>
+
+        <div>
+          <span class="fw-semibold">Stats: </span>
+          <span>${Object.keys(choice.stats).length ? Object.entries(choice.stats).map(([key, value]) => `${key}: ${value}`).join(', ') : '-'}</span>
+        </div>
+      </div>`;
+
+      function renderNextStepIdFunc(nextStepId) {
+        function getStepName(stepId) {
+          console.log(stepId);
+          return constructor.steps.find(step => step.id === stepId)?.name || 'N/A';
+        };
+
+        let text = nextStepId
+        .replace("() => { if(", '/n - If ')
+        .replaceAll(") { return ", `, then go to @id:`)
+        .replaceAll("else if (", "/n - If ")
+        .replaceAll("app.stats.", `stat @stat:`)
+
+        .replaceAll("app.logs.find(obj => obj.stepId === '", `value of @id:`)
+
+        .replaceAll(" && obj.value === '", ' was @value:')
+        .replaceAll(" && obj.value == '", ' was @value:')
+        .replaceAll(" && obj.value !== '", ' was not @value:')
+        .replaceAll(" && obj.value != '", ' was not @value:')
+
+        .replaceAll("!=", 'not equals ')
+        .replaceAll(">=", 'greater or equals ')
+        .replaceAll("<=", 'less or equals ')
+
+        .replaceAll(">", 'greater than ')
+        .replaceAll("<", 'less than ')
+        .replaceAll("==", 'equals ')
+        
+        .replaceAll(" && ", ', and ')
+        .replaceAll(" || ", ', or ')
+        
+        .replace("else { return ", '/n - If no condition is met go to @id:')
+        .replace("; }; }", '')
+        .replaceAll("; } ", ' ')
+        .replaceAll("')", '')
+        .replaceAll("'", '')
+
+        text = text
+        .replaceAll(/@stat:([^@ ]+)/g, (_, statName) => `"${statName}"`)
+        .replaceAll(/@id:([^@ ]+)/g, (_, stepId) => `"${getStepName(stepId)}"`)
+        .replaceAll(/@value:([^@ ]+)/g, (_, value) => `"${value}"`);
+
+        return text;
+      };
+    });
+
+
+    accordion.insertAdjacentHTML('beforeend', `
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="flush-heading${step.id}">
+          <button class="accordion-button collapsed py-2 ps-2" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse${step.id}" aria-expanded="false" aria-controls="flush-collapse${step.id}">
+            <span class="me-3">${step.name ? step.name : 'N/A'}</span>
+          </button>
+        </h2>
+        <div id="flush-collapse${step.id}" class="accordion-collapse collapse" aria-labelledby="flush-heading${step.id}" data-bs-parent="#accordionFlushExample">
+          <div class="accordion-body px-0">
+            <h6>Text:</h6>
+            <div>${step.text ? step.text : 'N/A'}</div>
+
+            <h6 class="mt-3">Choices:</h6>
+            <div class="d-flex flex-column gap-2">${step.choices ? choicesHtml : 'N/A'}</div>
+          </div>
+        </div>
+      </div>
+      `);
+
+    li.appendChild(accordion);
+
+    const controls = `
+      <div class="d-flex opacity-btns ms-sm-4">
+        <button class="btn btn-sm js-edit-listed-Step border-0 opacity-25" disabled type="button" data-bs-toggle="modal" data-bs-target="#createStepModal"><img src="edit-text.png" alt="Edit" width="18" height="18"></button>
+        <button class="btn btn-sm js-remove-listed-step" type="button"><img src="trash.png" alt="Remove" width="18" height="18"></button>
+      </div>
+    `;
+
+    li.innerHTML += controls;
+    
+    return;
   },
 
   renderConditionRule(isFirstRule) {
