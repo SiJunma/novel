@@ -93,14 +93,15 @@ const app = {
   },
 
   loadStep(stepId) {
-    
+    if  (stepId) {
       const allSteps = [...this.chapters.flatMap(ch => ch.steps)];
-      
+    
       this.currentStep = allSteps.find(st => st.id === stepId);
       this.currentChapter = this.chapters.find(ch => ch.steps.some(st => st.id === stepId));
 
       this.saveProgress();
       this.render();
+    };
   },
 
   makeChoice(choice) {
@@ -111,6 +112,8 @@ const app = {
           this.stats[stat] = choice.stats[stat];
       };
     };
+
+    const steps = [...this.chapters.flatMap(ch => ch.steps)];
 
     this.logs.push({
       chapterId: this.currentChapter.id,
@@ -123,26 +126,30 @@ const app = {
     });
 
     let nextStep = choice.nextStepId;
+    const isNextStepId = !choice.nextStepId.includes('() => { if(');
     let func;
 
-    try {
-      func = eval(choice.nextStepId);
-    } catch (error) {
-      console.log('Next step ID is not a function');
+    if(!isNextStepId) {
+      try {
+        func = eval(choice.nextStepId);
+      } catch (error) {
+        console.log('Next step ID is not a function');
+      };
     };
     
-    if (func && typeof func === "function") {
+    if (func && !isNextStepId) {
       nextStep = func();
     } else {
       nextStep = choice.nextStepId;
     };
 
-    if(nextStep) {
+    if(steps.find(step => step.id === nextStep)) {
       this.loadStep(nextStep);
+      this.saveProgress();
+      this.render();
+    } else {
+      alert('Next step does not exist');
     };
-
-    this.saveProgress();
-    this.render();
   },
 
   render() {
@@ -154,11 +161,20 @@ const app = {
     const choicesContainer = document.getElementById("choices");
     choicesContainer.innerHTML = "";
     this.currentStep.choices?.forEach(choice => {
+        const steps = this.chapters.flatMap(ch => ch.steps);
+        const isNextStepId = !choice.nextStepId.includes('() => { if(');
+        const isNextStepExist = isNextStepId ? steps.find(step => step.id === choice.nextStepId) : false;
+
         const button = document.createElement("button");
         button.textContent = choice.text;
         button.className = "btn";
         button.setAttribute("type", "button");
-        button.onclick = () => this.makeChoice(choice);
+
+        if(isNextStepId && isNextStepExist) {
+          button.onclick = () => this.makeChoice(choice);
+        } else {
+          button.disabled = true;
+        };
         choicesContainer.appendChild(button);
     });
 
