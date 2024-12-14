@@ -580,14 +580,21 @@ const constructor = {
       constructor.chapters.forEach(chapter => {
         chapter.steps = chapter.steps.filter(step => step.id !== stepId);
       });
-    };
 
-    parentChapterObject.steps.push({
-      name: stepTitle,
-      text: steptext,
-      choices: choices,
-      id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
-    });
+      parentChapterObject.steps.push({
+        name: stepTitle,
+        text: steptext,
+        choices: choices,
+        id: stepId
+      });
+    } else {
+      parentChapterObject.steps.push({
+        name: stepTitle,
+        text: steptext,
+        choices: choices,
+        id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+      });
+    };
 
     constructor.saveNovelToLocalStorage();
 
