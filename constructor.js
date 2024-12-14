@@ -48,7 +48,7 @@ const constructor = {
 
       const jsonString = JSON.stringify(data, null, 2);
       const blob = new Blob([jsonString], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob, { protocol: 'https:' });
 
 
       const downloadLink = document.createElement('a');
@@ -243,7 +243,6 @@ const constructor = {
 
         if (choicesContainer.querySelectorAll('.js-choiceItem').length === 0) {
           choicesContainer.classList.add('d-none');
-          document.getElementById('createStepBtn').disabled = true;
         };
       };
     });
@@ -523,9 +522,9 @@ const constructor = {
   validateStepForm() {
     const stepName = document.getElementById('stepName').value;
     const stepText = document.getElementById('stepText').value;
-    const isChoices = document.getElementById('choicesContainer').querySelectorAll('.js-choiceItem').length;
+    // const isChoices = document.getElementById('choicesContainer').querySelectorAll('.js-choiceItem').length;
 
-    if(stepName && stepText && isChoices) {
+    if(stepName && stepText) {
       return true;
     } else {
       return false;
@@ -687,7 +686,7 @@ const constructor = {
     accordion.className = 'accordion accordion-flush flex-grow-1';
 
     let choicesHtml = '';
-    step.choices.forEach(choice => {
+    step.choices?.forEach(choice => {
       choicesHtml += `<div class="bg-body-secondary p-2">
         <div>
           <span class="fw-semibold">Text: </span>
@@ -723,8 +722,8 @@ const constructor = {
             <h6>Text:</h6>
             <div>${step.text ? step.text.toString() : 'N/A'}</div>
 
-            <h6 class="mt-3">Choices:</h6>
-            <div class="d-flex flex-column gap-2">${step.choices ? choicesHtml : 'N/A'}</div>
+            ${step.choices?.length ? `<h6 class="mt-3">Choices:</h6>
+            <div class="d-flex flex-column gap-2">${choicesHtml}</div>` : ''}
           </div>
         </div>
       </div>
