@@ -156,7 +156,7 @@ const app = {
     document.getElementById("chapter-title").textContent = this.currentChapter.title;
     document.getElementById("chapter-subtitle").textContent = this.currentStep.name;
     const stepTextContainer = document.getElementById("step-text");
-    stepTextContainer.innerHTML = this.currentStep.text.replace(/\n/g, "<br>");
+    stepTextContainer.innerHTML = this.currentStep.text.replaceAll(/\n/g, "<br>").replaceAll("/n", "<br>");
 
     const choicesContainer = document.getElementById("choices");
     choicesContainer.innerHTML = "";

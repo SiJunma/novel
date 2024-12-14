@@ -270,7 +270,7 @@ const constructor = {
 
         document.getElementById('createStepModalLabel').textContent = 'Edit step: ' + stepTitle;
         document.getElementById('stepName').value = stepData.name;
-        document.getElementById('stepText').value = stepData.text;
+        document.getElementById('stepText').value = stepData.text.replace(/\/n/g, '\n');
 
         saveStepBtn.setAttribute('data-id', stepId);
         saveStepBtn.disabled = false;
@@ -567,7 +567,7 @@ const constructor = {
 
     const stepTitle = document.getElementById('stepName').value;
     const parentChapter = document.getElementById('parentChapter').value;
-    const steptext = document.getElementById('stepText').value;
+    const steptext = document.getElementById('stepText').value.replace(/\n/g, '/n');
     
     const choices = [];
     document.getElementById('choicesContainer').querySelectorAll('.js-choiceItem').forEach(choice => {
@@ -716,7 +716,7 @@ const constructor = {
       choicesHtml += `<div class="bg-body-secondary p-2">
         <div>
           <span class="fw-semibold">Text: </span>
-          <span>${choice.text ? choice.text.toString() : 'N/A'}</span>
+          <span>${choice.text ? choice.text.replaceAll(/\n/g, "<br>").replaceAll("/n", "<br>").toString() : 'N/A'}</span>
         </div>
 
         <div>
@@ -746,7 +746,7 @@ const constructor = {
         <div id="flush-collapse${step.id}" class="accordion-collapse collapse" aria-labelledby="flush-heading${step.id}" data-bs-parent="#accordionFlushExample">
           <div class="accordion-body px-0">
             <h6>Text:</h6>
-            <div>${step.text ? step.text.toString() : 'N/A'}</div>
+            <div>${step.text ? step.text.replaceAll(/\n/g, "<br>").replaceAll("/n", "<br>").toString() : 'N/A'}</div>
 
             ${step.choices?.length ? `<h6 class="mt-3">Choices:</h6>
             <div class="d-flex flex-column gap-2">${choicesHtml}</div>` : ''}
