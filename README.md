@@ -23,7 +23,7 @@ Novel Constructor is a simple tool for creating text-based novels with flexible 
 Please refrain from distributing this project until its full release.
 
 ## Roadmap
-- Add a dedicated novel-reading page for users, free from debugging elements.
 - Enable the addition of images to steps.
-- Implement editing functionality for steps and choice paths.
+- Implement editing functionality for choice paths.
+- Add order customization to the list of chapters to make the constructor easier to use.
 

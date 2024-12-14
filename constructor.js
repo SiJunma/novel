@@ -1,6 +1,8 @@
 const constructor = {
   chapters: [],
   steps: [],
+  stepModal: null,
+  conditionModal: null,
 
   init() {
     if (localStorage.getItem('constructedNovel')) {
@@ -17,9 +19,11 @@ const constructor = {
 
     const StepModalBtn = document.getElementById('openStepEditorBtn');
     const StepModal = new bootstrap.Modal(document.getElementById('createStepModal'));
+    this.stepModal = StepModal;
 
     const ConditionModalBtn = document.getElementById('openConditionModalBtn');
     const ConditionModal = new bootstrap.Modal(document.getElementById('createConditionModal'));
+    this.conditionModal = ConditionModal;
 
     StepModalBtn.addEventListener('click', function(e) {
       StepModal.show();
@@ -36,6 +40,7 @@ const constructor = {
 
     document.getElementById('additionalConditionRules').appendChild(constructor.renderConditionRule(true));
 
+    // download JSON file
     document.getElementById('downloadJsonBtn').onclick = () => {
       const data = {
         chapters: this.chapters,
@@ -54,16 +59,25 @@ const constructor = {
       URL.revokeObjectURL(url);
     };
 
+    // show/hide choice form
     document.getElementById('addChoiceBtn').onclick = () => {
       const choiceForm = document.getElementById('createChoiceForm');
       choiceForm.classList.remove('d-none');
       document.getElementById('addChoiceBtn').classList.add('d-none');
     };
+    document.getElementById('cancelChoiceBtn').onclick = () => {
+      const choiceForm = document.getElementById('createChoiceForm');
+      choiceForm.classList.add('d-none');
+      document.getElementById('addChoiceBtn').classList.remove('d-none');
+    };
+    //
 
+    // listener on chapter form
     document.getElementById('chapterTitle').addEventListener('input', function(e) {
       document.getElementById('createChapterBtn').disabled = e.target.value === '';
     });
 
+    // open chapter editor, rename title and btn of the modal
     document.getElementById('openChapterEditorBtn').addEventListener('click', function(e) {
       document.getElementById('createChapterBtn').removeAttribute('data-id');
       document.getElementById('chapterTitle').value = '';
@@ -71,6 +85,7 @@ const constructor = {
       document.getElementById('createChapterBtn').disabled = true
     });
 
+    // removing condition from nextStepConditionsList
     document.getElementById('nextStepConditionsList').addEventListener('click', function(e) {
       const conditionsList = document.getElementById('nextStepConditionsList');
 
@@ -96,35 +111,9 @@ const constructor = {
       };
     };
 
+
     document.getElementById('createChapterBtn').onclick = () => {
-      const title = document.getElementById('chapterTitle').value;
-      const chapterId = document.getElementById('createChapterBtn').getAttribute('data-id');
-
-      const data = {
-        id: chapterId ? chapterId : 'chapter' + Date.now(),
-        title: title,
-      };
-
-      if(chapterId) {
-        const chapter = constructor.chapters.find(ch => ch.id === chapterId);
-        data.steps = chapter.steps;
-
-        constructor.chapters = constructor.chapters.filter(ch => ch.id !== chapterId);
-      } else {
-        data.steps = [];
-      };
-
-      constructor.chapters.push(data);
-
-      document.getElementById('chapterTitle').value = '';
-
-      this.saveNovelToLocalStorage();
-    };
-
-    document.getElementById('cancelChoiceBtn').onclick = () => {
-      const choiceForm = document.getElementById('createChoiceForm');
-      choiceForm.classList.add('d-none');
-      document.getElementById('addChoiceBtn').classList.remove('d-none');
+      constructor.saveChapterToData()
     };
 
     document.getElementById('addStatBtn').onclick = () => {
@@ -162,6 +151,7 @@ const constructor = {
       };
     });
 
+    // open chapter editor
     document.getElementById('listOfChapters').addEventListener('click', (e) => {
       if (e.target.classList.contains('js-edit-chapter')) {
         const chapterId = e.target.closest('.chapter-box').querySelector('.chapter-title').getAttribute('data-id');
@@ -169,8 +159,7 @@ const constructor = {
         document.getElementById('createChapterModalLabel').textContent = 'Edit chapter: ' + chapterData.title;
         document.getElementById('chapterTitle').value = chapterData.title;
 
-        document.getElementById('createChapterBtn').textContent = 'Save';
-        document.getElementById('createChapterBtn').setAttribute('data-id', chapterId);
+        document.getElementById('createChapterBtn').setAttribute('data-id', chapterId).textContent = 'Save';
         document.getElementById('createChapterBtn').disabled = false;
       };
     });
@@ -254,6 +243,7 @@ const constructor = {
 
         if (choicesContainer.querySelectorAll('.js-choiceItem').length === 0) {
           choicesContainer.classList.add('d-none');
+          document.getElementById('createStepBtn').disabled = true;
         };
       };
     });
@@ -269,6 +259,70 @@ const constructor = {
     document.getElementById('resetChoiceBtn').onclick = () => {
       constructor.clearChoiceForm();
     };
+
+    document.getElementById('listOfChapters').addEventListener('click', (e) => {
+      if (e.target.closest('.js-edit-listed-Step')) {
+        const stepId = e.target.closest('li.list-group-item').getAttribute('data-id');
+        const stepData = constructor.steps.find(step => step.id === stepId);
+        const stepTitle = stepData.name;
+
+        const stepModalElement = document.getElementById('createStepModal');
+        const saveStepBtn = document.getElementById('createStepBtn');
+
+        document.getElementById('createStepModalLabel').textContent = 'Edit step: ' + stepTitle;
+        document.getElementById('stepName').value = stepData.name;
+        document.getElementById('stepText').value = stepData.text;
+
+        saveStepBtn.setAttribute('data-id', stepId);
+        saveStepBtn.disabled = false;
+
+        const parentChapterId = constructor.chapters.find(chapter => chapter.steps.some(step => step.id === stepId)).id;
+        document.getElementById('parentChapter').value = parentChapterId;
+
+        const choicesContainer = document.getElementById('choicesContainer');
+        const choices = stepData.choices;
+
+        if (choices.length) {
+          choicesContainer.classList.remove('d-none');
+          choices.forEach(choice => {
+            const isNextStepId = constructor.steps.find(step => step.id === choice.nextStepId);
+            const choiceObject = {
+              text: choice.text,
+              value: choice.value,
+              nextStepId: choice.nextStepId,
+              nextStepUI: isNextStepId ? isNextStepId.name : constructor.renderNextStepIdFunc(choice.nextStepId),
+              stats: choice.stats
+            };
+        
+            const choiceElement = constructor.createChoiceInStepElement(choiceObject);
+
+            choicesContainer.appendChild(choiceElement);
+          });
+        } else {
+          choicesContainer.classList.add('d-none');
+        };
+
+        const modalHiddenListener = () => {
+          //set title, clear data-id from save btn
+          saveStepBtn.setAttribute('data-id', '');
+          saveStepBtn.disabled = true;
+          document.getElementById('createStepModalLabel').textContent = 'Create step';
+          document.getElementById('choicesContainer').innerHTML = '';
+          document.getElementById('choicesContainer').classList.add('d-none');
+
+          //clear step form
+          document.getElementById('stepName').value = '';
+          document.getElementById('stepText').value = '';
+          document.getElementById('parentChapter').value = document.getElementById('parentChapter').options[0].value;
+
+          stepModalElement.removeEventListener('hidden.bs.modal', modalHiddenListener);
+        };
+
+        stepModalElement.addEventListener('hidden.bs.modal', modalHiddenListener);
+
+        constructor.stepModal.show();
+      };
+    })
   },
 
   saveChoiceToStep() {
@@ -291,7 +345,7 @@ const constructor = {
       nextStepUI = constructor.steps.find(step => step.id === nextStepId).name;
     } else if (document.getElementById('nextStep_condition').checked) {
       const conditionsList = document.getElementById('nextStepConditionsList');
-      // "() => { if(app.stats.intellectual > 1) { return 'chapter2_step1'; } else if (app.logs.find(obj => obj.stepId === 'chapter1_step1' && obj.value === 'intellectual')) { return 'chapter1_step1'; } else { return 'chapter1_step4'; }; }"
+
       nextStepId = '() => {';
 
       conditionsList.querySelectorAll('.js-UIcondition').forEach((rule, index) => {
@@ -315,17 +369,32 @@ const constructor = {
       text: choiceText,
       value: choiceValue,
       nextStepId: nextStepId,
+      nextStepUI: nextStepUI,
       stats: stats
     };
 
     const choicesContainer = document.getElementById('choicesContainer');
+    
+    const choiceElement = constructor.createChoiceInStepElement(choiceObject);
+
+    choicesContainer.appendChild(choiceElement);
+    choicesContainer.classList.remove('d-none');
+
+    document.getElementById('createChoiceForm').classList.add('d-none');
+    document.getElementById('addChoiceBtn').classList.remove('d-none');
+
+    document.getElementById('createStepBtn').disabled = !constructor.validateStepForm();
+  },
+
+  createChoiceInStepElement(choiceObject) {
+    console.log(choiceObject)
     const choiceElement = document.createElement('div');
     choiceElement.className = 'd-flex justify-content-between align-items-start bg-body-tertiary card flex-row p-3 js-choiceItem';
     choiceElement.setAttribute('data-choice', JSON.stringify(choiceObject));
     let statsText = '';
-    for (let stat in stats) {
-      statsText += `${stat}: ${stats[stat]}`;
-      if (Object.keys(stats).indexOf(stat) !== Object.keys(stats).length - 1) {
+    for (let stat in choiceObject.stats) {
+      statsText += `${stat}: ${choiceObject.stats[stat]}`;
+      if (Object.keys(choiceObject.stats).indexOf(stat) !== Object.keys(choiceObject.stats).length - 1) {
         statsText += ', ';
       } else {
         statsText += '.';
@@ -335,31 +404,50 @@ const constructor = {
     choiceElement.innerHTML = `
       <div class="">
         <b>Text of a choice:</b>
-        <div class="mb-2">${choiceText}</div>
+        <div class="mb-2">${choiceObject.text.toString()}</div>
 
-        <div class="mb-2"><b>Value of a choice:</b> <span>${choiceValue}</span></div>
+        <div class="mb-2"><b>Value of a choice:</b> <span>${choiceObject.value.toString()}</span></div>
 
-        <div class="mb-2"><b>Stats:</b> <span>${statsText}</span></div>
+        <div class="mb-2"><b>Stats:</b> <span>${statsText ? statsText : '-'}</span></div>
 
         <div>
           <b>Next step:</b> 
-          <span>${nextStepUI.replaceAll('/n', '<br>')}</span>
+          <span>${choiceObject.nextStepUI.replaceAll('/n', '<br>')}</span>
         </div>
       </div>
 
       <div class="d-flex gap-2">
-        <button class="btn btn-outline-primary btn-sm js-edit-renderedChoice" type="button" data-bs-toggle="modal" data-bs-target="#createChoiceModal">Edit</button>
+        <button class="btn btn-outline-primary btn-sm js-edit-renderedChoice opacity-25" disabled type="button" data-bs-toggle="modal" data-bs-target="#createChoiceModal">Edit</button>
         <button class="btn btn-outline-danger btn-sm js-remove-renderedChoice" type="button">Remove</button>
       </div>
     `;
 
-    choicesContainer.appendChild(choiceElement);
-    choicesContainer.classList.remove('d-none');
+    return choiceElement;
+  },
 
-    document.getElementById('createChoiceForm').classList.add('d-none');
-    document.getElementById('addChoiceBtn').classList.remove('d-none');
+  saveChapterToData() {
+    const title = document.getElementById('chapterTitle').value;
+    const chapterId = document.getElementById('createChapterBtn').getAttribute('data-id');
 
-    document.getElementById('createStepBtn').disabled = !constructor.validateStepForm();
+    const data = {
+      id: chapterId ? chapterId : 'chapter' + Date.now(),
+      title: title,
+    };
+
+    if(chapterId) {
+      const chapter = constructor.chapters.find(ch => ch.id === chapterId);
+      data.steps = chapter.steps;
+
+      constructor.chapters = constructor.chapters.filter(ch => ch.id !== chapterId);
+    } else {
+      data.steps = [];
+    };
+
+    constructor.chapters.push(data);
+
+    document.getElementById('chapterTitle').value = '';
+
+    this.saveNovelToLocalStorage();
   },
 
   validateChoiceForm() {
@@ -472,6 +560,10 @@ const constructor = {
     return isConditionPassed;
   },
   savingStepToData() {
+    //check if saveBtn contains data-id
+    const saveBtn = document.getElementById('createStepBtn');
+    const stepId = saveBtn.getAttribute('data-id');
+
     const stepTitle = document.getElementById('stepName').value;
     const parentChapter = document.getElementById('parentChapter').value;
     const steptext = document.getElementById('stepText').value;
@@ -482,6 +574,12 @@ const constructor = {
     });
 
     const parentChapterObject = constructor.chapters.find(chapter => chapter.id === parentChapter);
+
+    if(stepId) {
+      constructor.chapters.forEach(chapter => {
+        chapter.steps = chapter.steps.filter(step => step.id !== stepId);
+      });
+    };
 
     parentChapterObject.steps.push({
       name: stepTitle,
@@ -585,28 +683,25 @@ const constructor = {
   },
 
   renderStepElement(li, step) {
-    console.log(step);
     const accordion = document.createElement('div');
     accordion.className = 'accordion accordion-flush flex-grow-1';
 
     let choicesHtml = '';
     step.choices.forEach(choice => {
-      //text, value stats({key:value}), nextStepId
-
       choicesHtml += `<div class="bg-body-secondary p-2">
         <div>
           <span class="fw-semibold">Text: </span>
-          <span>${choice.text ? choice.text : 'N/A'}</span>
+          <span>${choice.text ? choice.text.toString() : 'N/A'}</span>
         </div>
 
         <div>
           <span class="fw-semibold">Value: </span>
-          <span>${choice.value ? choice.value : '-'}</span>
+          <span>${choice.value ? choice.value.toString() : '-'}</span>
         </div>
 
         <div>
           <span class="fw-semibold">Next Step: </span>
-          <span>${choice.nextStepId ? constructor.steps.find(step => step.id === choice.nextStepId)?.name || renderNextStepIdFunc(choice.nextStepId).replaceAll('/n', '<br />').replaceAll('N/A', '<span class="text-danger">N/A</span>') : '-'}</span>
+          <span>${choice.nextStepId ? constructor.steps.find(step => step.id === choice.nextStepId)?.name || constructor.renderNextStepIdFunc(choice.nextStepId).replaceAll('/n', '<br />').replaceAll('N/A', '<span class="text-danger">N/A</span>') : '-'}</span>
         </div>
 
         <div>
@@ -614,64 +709,19 @@ const constructor = {
           <span>${Object.keys(choice.stats).length ? Object.entries(choice.stats).map(([key, value]) => `${key}: ${value}`).join(', ') : '-'}</span>
         </div>
       </div>`;
-
-      function renderNextStepIdFunc(nextStepId) {
-        function getStepName(stepId) {
-          // console.log(stepId);
-          return constructor.steps.find(step => step.id === stepId)?.name || 'N/A';
-        };
-
-        let text = nextStepId
-        .replace("() => { if(", '/n - If ')
-        .replaceAll(") { return ", `, then go to @id:`)
-        .replaceAll("else if (", "/n - If ")
-        .replaceAll("app.stats.", `stat @stat:`)
-
-        .replaceAll("app.logs.find(obj => obj.stepId === '", `value of @id:`)
-
-        .replaceAll(" && obj.value === '", ' was @value:')
-        .replaceAll(" && obj.value == '", ' was @value:')
-        .replaceAll(" && obj.value !== '", ' was not @value:')
-        .replaceAll(" && obj.value != '", ' was not @value:')
-
-        .replaceAll("!=", 'not equals ')
-        .replaceAll(">=", 'greater or equals ')
-        .replaceAll("<=", 'less or equals ')
-
-        .replaceAll(">", 'greater than ')
-        .replaceAll("<", 'less than ')
-        .replaceAll("==", 'equals ')
-        
-        .replaceAll(" && ", ', and ')
-        .replaceAll(" || ", ', or ')
-        
-        .replace("else { return ", '/n - If no condition is met go to @id:')
-        .replace("; }; }", '')
-        .replaceAll("; } ", ' ')
-        .replaceAll("')", '')
-        .replaceAll("'", '')
-
-        text = text
-        .replaceAll(/@stat:([^@ ]+)/g, (_, statName) => `"${statName}"`)
-        .replaceAll(/@id:([^@ ]+)/g, (_, stepId) => `"${getStepName(stepId)}"`)
-        .replaceAll(/@value:([^@ ]+)/g, (_, value) => `"${value}"`);
-
-        return text;
-      };
     });
-
 
     accordion.insertAdjacentHTML('beforeend', `
       <div class="accordion-item">
         <h2 class="accordion-header" id="flush-heading${step.id}">
           <button class="accordion-button collapsed py-2 ps-2" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse${step.id}" aria-expanded="false" aria-controls="flush-collapse${step.id}">
-            <span class="me-3">${step.name ? step.name : 'N/A'}</span>
+            <span class="me-3">${step.name ? step.name.toString() : 'N/A'}</span>
           </button>
         </h2>
         <div id="flush-collapse${step.id}" class="accordion-collapse collapse" aria-labelledby="flush-heading${step.id}" data-bs-parent="#accordionFlushExample">
           <div class="accordion-body px-0">
             <h6>Text:</h6>
-            <div>${step.text ? step.text : 'N/A'}</div>
+            <div>${step.text ? step.text.toString() : 'N/A'}</div>
 
             <h6 class="mt-3">Choices:</h6>
             <div class="d-flex flex-column gap-2">${step.choices ? choicesHtml : 'N/A'}</div>
@@ -684,7 +734,7 @@ const constructor = {
 
     const controls = `
       <div class="d-flex opacity-btns ms-sm-4">
-        <button class="btn btn-sm js-edit-listed-Step border-0 opacity-25" disabled type="button" data-bs-toggle="modal" data-bs-target="#createStepModal"><img src="edit-text.png" alt="Edit" width="18" height="18"></button>
+        <button class="btn btn-sm js-edit-listed-Step border-0" type="button"><img src="edit-text.png" alt="Edit" width="18" height="18"></button>
         <button class="btn btn-sm js-remove-listed-step" type="button"><img src="trash.png" alt="Remove" width="18" height="18"></button>
       </div>
     `;
@@ -692,6 +742,49 @@ const constructor = {
     li.innerHTML += controls;
     
     return;
+  },
+
+  renderNextStepIdFunc(nextStepId) {
+    function getStepName(stepId) {
+      return constructor.steps.find(step => step.id === stepId)?.name || 'N/A';
+    };
+
+    let text = nextStepId
+    .replace("() => { if(", '/n - If ')
+    .replaceAll(") { return ", `, then go to @id:`)
+    .replaceAll("else if (", "/n - If ")
+    .replaceAll("app.stats.", `stat @stat:`)
+
+    .replaceAll("app.logs.find(obj => obj.stepId === '", `value of @id:`)
+
+    .replaceAll(" && obj.value === '", ' was @value:')
+    .replaceAll(" && obj.value == '", ' was @value:')
+    .replaceAll(" && obj.value !== '", ' was not @value:')
+    .replaceAll(" && obj.value != '", ' was not @value:')
+
+    .replaceAll("!=", 'not equals ')
+    .replaceAll(">=", 'greater or equals ')
+    .replaceAll("<=", 'less or equals ')
+
+    .replaceAll(">", 'greater than ')
+    .replaceAll("<", 'less than ')
+    .replaceAll("==", 'equals ')
+    
+    .replaceAll(" && ", ', and ')
+    .replaceAll(" || ", ', or ')
+    
+    .replace("else { return ", '/n - If no condition is met go to @id:')
+    .replace("; }; }", '')
+    .replaceAll("; } ", ' ')
+    .replaceAll("')", '')
+    .replaceAll("'", '')
+
+    text = text
+    .replaceAll(/@stat:([^@ ]+)/g, (_, statName) => `"${statName}"`)
+    .replaceAll(/@id:([^@ ]+)/g, (_, stepId) => `"${getStepName(stepId)}"`)
+    .replaceAll(/@value:([^@ ]+)/g, (_, value) => `"${value}"`);
+
+    return text;
   },
 
   renderConditionRule(isFirstRule) {
@@ -856,6 +949,14 @@ const constructor = {
       } 
     };
 
+    const UIElement = constructor.createConditionSetupElement(conditionUI);
+
+    UIElement.setAttribute('data-condition', JSON.stringify(conditionData));
+
+    return UIElement;
+  },
+
+  createConditionSetupElement(conditionUI) {
     const UIElement = document.createElement('div');
     UIElement.className = 'border-bottom border-top py-3 d-flex flex-column justify-content-between gap-2 flex-lg-row align-items-start js-UIcondition';
     UIElement.appendChild(document.createElement('span'));
@@ -868,8 +969,6 @@ const constructor = {
       </div>
     `);
 
-    UIElement.setAttribute('data-condition', JSON.stringify(conditionData));
-
     return UIElement;
   },
 
@@ -877,8 +976,8 @@ const constructor = {
     const statItem = document.createElement('div');
     statItem.className = 'd-flex gap-2 flex-wrap flex-md-nowrap p-2 bg-primary-subtle stats-item';
     statItem.innerHTML = `
-      <input type="text" class="form-control js-statName js-choice-validation" id="statItem_${index}" placeholder="Stat name" value="${stat}">
-      <input type="number" class="form-control w-auto js-statValue js-choice-validation" id="statValue_${index}" placeholder="Stat value" value="${value}">
+      <input type="text" class="form-control js-statName js-choice-validation" id="statItem_${index}" placeholder="Stat name" value="${stat.toString()}">
+      <input type="number" class="form-control w-auto js-statValue js-choice-validation" id="statValue_${index}" placeholder="Stat value" value="${value.toString()}">
       <button class="btn btn-outline-danger js-remove-stat" type="button">Remove</button>
     `;
 
