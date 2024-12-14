@@ -284,7 +284,7 @@ const constructor = {
         if (choices.length) {
           choicesContainer.classList.remove('d-none');
           choices.forEach(choice => {
-            const isNextStepId = constructor.steps.find(step => step.id === choice.nextStepId);
+            const isNextStepId = !choice.nextStepId.includes('() => { if(');
             const choiceObject = {
               text: choice.text,
               value: choice.value,
@@ -400,6 +400,8 @@ const constructor = {
       };
     };
 
+    const isNextStepId = !choiceObject.nextStepId.includes('() => { if(');
+
     choiceElement.innerHTML = `
       <div class="">
         <b>Text of a choice:</b>
@@ -411,7 +413,7 @@ const constructor = {
 
         <div>
           <b>Next step:</b> 
-          <span>${choiceObject.nextStepUI.replaceAll('/n', '<br>')}</span>
+          <span>${isNextStepId ? constructor.steps.find(step => step.id === choiceObject.nextStepId)?.name || '<span class="text-danger">N/A</span>' :  choiceObject.nextStepUI?.replaceAll('/n', '<br>')}</span>
         </div>
       </div>
 
@@ -687,6 +689,8 @@ const constructor = {
 
     let choicesHtml = '';
     step.choices?.forEach(choice => {
+      const isNextStepId = !choice.nextStepId.includes('() => { if(');
+
       choicesHtml += `<div class="bg-body-secondary p-2">
         <div>
           <span class="fw-semibold">Text: </span>
@@ -700,7 +704,7 @@ const constructor = {
 
         <div>
           <span class="fw-semibold">Next Step: </span>
-          <span>${choice.nextStepId ? constructor.steps.find(step => step.id === choice.nextStepId)?.name || constructor.renderNextStepIdFunc(choice.nextStepId).replaceAll('/n', '<br />').replaceAll('N/A', '<span class="text-danger">N/A</span>') : '-'}</span>
+          <span>${isNextStepId ? constructor.steps.find(step => step.id === choice.nextStepId)?.name || '<span class="text-danger">N/A</span>' : constructor.renderNextStepIdFunc(choice.nextStepId).replaceAll('/n', '<br />').replaceAll('N/A', '<span class="text-danger">N/A</span>')}</span>
         </div>
 
         <div>
