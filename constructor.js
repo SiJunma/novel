@@ -578,14 +578,29 @@ const constructor = {
 
     if(stepId) {
       constructor.chapters.forEach(chapter => {
-        chapter.steps = chapter.steps.filter(step => step.id !== stepId);
-      });
+        const isParentTheSame = chapter.id === parentChapter;
 
-      parentChapterObject.steps.push({
-        name: stepTitle,
-        text: steptext,
-        choices: choices,
-        id: stepId
+        if(isParentTheSame) {
+          const step = chapter.steps.find(step => step.id === stepId);
+
+          if(step) {
+            step.name = stepTitle;
+            step.text = steptext;
+            step.choices = choices;
+          };
+        } else {
+          const step = chapter.steps.find(step => step.id === stepId);
+
+          if(step) {
+            chapter.steps = chapter.steps.filter(step => step.id !== stepId);
+            parentChapterObject.steps.push({
+              name: stepTitle,
+              text: steptext,
+              choices: choices,
+              id: step.id
+            });
+          };
+        };
       });
     } else {
       parentChapterObject.steps.push({
