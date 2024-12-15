@@ -36,15 +36,9 @@
           "choices": [
             {
               "text": "Join the Zealots in their charge.",
-              "nextStepId": "chapter1_step5",
+              "nextStepId": "chapter2_step1",
               "value": "bravery",
               "stats": { "honor": 2 }
-            },
-            {
-              "text": "Ask about the archives.",
-              "nextStepId": "chapter1_step3",
-              "value": "intellect",
-              "stats": { "intellect": 1 }
             }
           ]
         },
@@ -55,15 +49,9 @@
           "choices": [
             {
               "text": "Search for the source of the voice.",
-              "nextStepId": "chapter1_step6",
+              "nextStepId": "chapter2_step2",
               "value": "exploration",
               "stats": { "intellect": 2 }
-            },
-            {
-              "text": "Retreat and report to the Templar.",
-              "nextStepId": "chapter1_step2",
-              "value": "loyalty",
-              "stats": { "honor": 1 }
             }
           ]
         },
@@ -74,34 +62,9 @@
           "choices": [
             {
               "text": "Stand your ground and fight.",
-              "nextStepId": "chapter1_step7",
+              "nextStepId": "chapter2_step3",
               "value": "bravery",
               "stats": { "honor": 2 }
-            },
-            {
-              "text": "Attempt to evade and find another route.",
-              "nextStepId": "chapter1_step8",
-              "value": "caution",
-              "stats": { "caution": 2 }
-            }
-          ]
-        },
-        {
-          "id": "chapter1_step5",
-          "name": "Battle on the Ridge",
-          "text": "The ridge erupts into chaos as Zerglings swarm the Zealots. You find yourself locked in combat, your psi blade clashing against the onslaught.",
-          "choices": [
-            {
-              "text": "Hold the line with the Templar.",
-              "nextStepId": "chapter2_step1",
-              "value": "loyalty",
-              "stats": { "honor": 3 }
-            },
-            {
-              "text": "Fall back and regroup.",
-              "nextStepId": "chapter1_step4",
-              "value": "caution",
-              "stats": { "caution": 2 }
             }
           ]
         }
@@ -113,22 +76,105 @@
       "steps": [
         {
           "id": "chapter2_step1",
-          "name": "Psi-Link Discovery",
-          "text": "A shard of the Khala artifact glows with immense energy. The Templar informs you that its power may be the key to victory—or disaster.",
+          "name": "Battle on the Ridge",
+          "text": "The ridge erupts into chaos as Zerglings swarm the Zealots. You find yourself locked in combat, your psi blade clashing against the onslaught.",
+          "choices": [
+            {
+              "text": "Push toward the shard.",
+              "nextStepId": "chapter2_step4",
+              "value": "bravery",
+              "stats": { "honor": 3 }
+            },
+            {
+              "text": "Regroup and form a defensive line.",
+              "nextStepId": "chapter2_step5",
+              "value": "strategy",
+              "stats": { "intellect": 3 }
+            }
+          ]
+        },
+        {
+          "id": "chapter2_step2",
+          "name": "The Voice of the Ruins",
+          "text": "Following the psionic trail, you uncover an ancient shard of the Khala artifact, pulsating with immense energy.",
           "choices": [
             {
               "text": "Attempt to merge with the shard.",
-              "nextStepId": "chapter2_step2",
+              "nextStepId": "chapter3_step1",
               "value": "risk",
               "stats": { "intellect": 3 }
             },
             {
-              "text": "Secure the shard for study.",
-              "nextStepId": "chapter2_step3",
+              "text": "Secure the shard and retreat.",
+              "nextStepId": "chapter2_step6",
               "value": "caution",
-              "stats": { "intellect": 2 }
+              "stats": { "caution": 2 }
             }
           ]
+        },
+        {
+          "id": "chapter2_step3",
+          "name": "Facing the Overlord",
+          "text": "You charge at the Overlord, psi blade igniting as you strike its thick hide. It lets out a deafening roar, and in the distance, more Zerg are approaching.",
+          "choices": [
+            {
+              "text": "Fight through and head toward the shard.",
+              "nextStepId": "chapter2_step4",
+              "value": "bravery",
+              "stats": { "honor": 3 }
+            }
+          ]
+        },
+        {
+          "id": "chapter2_step4",
+          "name": "Shard Reached",
+          "text": "You reach the glowing shard of the Khala, its energy pulsing wildly. The fate of Aiur hinges on what happens next.",
+          "choices": [
+            {
+              "text": "Take the shard.",
+              "nextStepId": "chapter3_step1",
+              "value": "resolve",
+              "stats": { "honor": 3 }
+            }
+          ]
+        },
+        {
+          "id": "chapter2_step5",
+          "name": "Defensive Formation",
+          "text": "Your strategic mind prevails. Together with the Zealots, you hold the line, buying time to secure the shard.",
+          "choices": [
+            {
+              "text": "Break through to the shard.",
+              "nextStepId": "chapter3_step1",
+              "value": "resolve",
+              "stats": { "intellect": 3 }
+            }
+          ]
+        },
+        {
+          "id": "chapter2_step6",
+          "name": "Strategic Retreat",
+          "text": "You carefully withdraw, carrying the shard with you. The Zerg pursue but seem repelled by the shard’s psionic energy.",
+          "choices": [
+            {
+              "text": "Focus on studying the shard.",
+              "nextStepId": "chapter3_step1",
+              "value": "intellect",
+              "stats": { "intellect": 3 }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter3",
+      "title": "To Be Continued...",
+      "steps": [
+        {
+          "id": "chapter3_step1",
+          "name": "The Shard's Fate",
+          "text": "As you hold the shard, its energy pulses through you. The fate of Aiur—and perhaps the galaxy—rests in your hands. What comes next is uncertain, but your path is set. \n\nTo be continued...",
+          "choices": []
         }
       ]
     }
